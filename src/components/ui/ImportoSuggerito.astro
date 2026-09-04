@@ -1,0 +1,129 @@
+---
+/**
+ * Importi suggeriti con l'equivalenza concreta: "10 € — Kit biancheria — mutande, canottiere…".
+ * Parametrico: riceve le soglie della campagna (sono quelle già stampate sui volantini del VIC)
+ * e serve identico su "Vesti un detenuto povero", "Casa del VIC" e le campagne future (spec §6, §6-bis).
+ *
+ * Ogni voce è un link all'ancora del blocco di donazione (`destinazione`), così funziona
+ * anche senza JavaScript. Con JavaScript la scelta viene evidenziata e scritta negli elementi
+ * [data-importo-scelto] della pagina (es. "Importo scelto: 10 € — Kit biancheria").
+ *
+ *   <ImportoSuggerito destinazione="#bonifico" importi={[
+ *     { importo: 5,  titolo: 'Kit igiene',        contenuto: 'sapone, shampoo, dentifricio, spazzolino' },
+ *     { importo: 10, titolo: 'Kit biancheria',    contenuto: 'mutande, canottiere, reggiseno, asciugamani' },
+ *     { importo: 20, titolo: 'Kit abbigliamento', contenuto: 'tuta, felpa, scarpe da ginnastica' },
+ *   ]} />
+ */
+import { euro } from '../../lib/formato';
+
+interface Importo {
+  importo: number;
+  titolo: string;
+  contenuto: string;
+}
+interface Props {
+  importi: Importo[];
+  destinazione: string;
+  etichettaLista?: string;
+}
+const { importi, destinazione, etichettaLista = 'Importi suggeriti' } = Astro.props;
+---
+
+<ul class="importi" aria-label={etichettaLista} data-importi>
+  {importi.map((v) => (
+    <li>
+      <a
+        class="importi__voce"
+        href={destinazione}
+        data-importo={v.importo}
+        data-titolo={v.titolo}
+      >
+        <span class="importi__cifra">{euro(v.importo)}</span>
+        <span class="importi__titolo">{v.titolo}</span>
+        <span class="importi__contenuto">{v.contenuto}</span>
+        <span class="sr-only importi__scelto"></span>
+      </a>
+    </li>
+  ))}
+</ul>
+
+<script>
+  for (const lista of document.querySelectorAll<HTMLElement>('[data-importi]')) {
+    const voci = Array.from(lista.querySelectorAll<HTMLAnchorElement>('.importi__voce'));
+    for (const voce of voci) {
+      voce.addEventListener('click', () => {
+        for (const altra of voci) {
+          altra.classList.toggle('importi__voce--scelta', altra === voce);
+          const marcatore = altra.querySelector<HTMLElement>('.importi__scelto');
+          if (marcatore) marcatore.textContent = altra === voce ? ' (scelto)' : '';
+        }
+        const testo = `${voce.querySelector('.importi__cifra')?.textContent ?? ''} — ${voce.dataset.titolo ?? ''}`;
+        for (const el of document.querySelectorAll<HTMLElement>('[data-importo-scelto]')) {
+          el.textContent = testo;
+          el.hidden = false;
+        }
+      });
+    }
+  }
+</script>
+
+<style>
+  .importi {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spazio-2);
+  }
+  @media (min-width: 600px) {
+    .importi { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  .importi__voce {
+    display: flex;
+    flex-direction: column;
+    gap: .25em;
+    height: 100%;
+    padding: var(--spazio-3);
+    color: var(--testo);
+    text-decoration: none;
+    border: var(--spessore-bordo) solid var(--azione);
+    background: var(--superficie);
+  }
+  .importi__voce:hover,
+  .importi__voce--scelta {
+    background: var(--azione);
+    color: var(--azione-testo);
+  }
+  .importi__cifra {
+    font-family: var(--font-titoli);
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .importi__titolo {
+    font-weight: 600;
+    font-size: 1.1em;
+  }
+  .importi__contenuto {
+    font-size: .95em;
+  }
+
+  :global(.fascia--alt) .importi__voce {
+    border-color: var(--testo);
+    background: var(--superficie);
+  }
+  :global(.fascia--alt) .importi__voce:hover,
+  :global(.fascia--alt) .importi__voce--scelta {
+    background: var(--testo);
+    color: var(--superficie);
+  }
+  :global(.fascia--scura) .importi__voce {
+    border-color: var(--superficie-alt);
+    background: transparent;
+    color: var(--superficie);
+  }
+  :global(.fascia--scura) .importi__voce:hover,
+  :global(.fascia--scura) .importi__voce--scelta {
+    background: var(--superficie-alt);
+    color: var(--testo);
+  }
+</style>

@@ -1,0 +1,11 @@
+[
+  { "nome": "Caritas Roma", "url": "https://www.caritasroma.it" },
+  { "nome": "Caritas Italiana", "url": "https://www.caritas.it" },
+  { "nome": "Associazione Antigone", "url": "https://www.antigone.it" },
+  { "nome": "CESV", "url": "" },
+  { "nome": "Fondazione Charlemagne", "url": "https://www.fondazionecharlemagne.org" },
+  { "nome": "Fondazione Rifugio", "nomeEsteso": "Fondazione la Sesta Città di Rifugio", "url": "http://www.fondazionerifugio.it" },
+  { "nome": "Arciconfraternita San Giovanni Decollato", "url": "" },
+  { "nome": "Associazione VO.RE.CO.", "url": "https://www.voreco.it" },
+  { "nome": "Associazione VOL.A.RE", "url": "http://www.volontariato.lazio.it/volare/chisiamo.asp" }
+]

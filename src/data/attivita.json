@@ -1,0 +1,38 @@
+[
+  {
+    "id": "ascolto",
+    "titolo": "Ascolto",
+    "testo": "Ogni giorno i volontari del VIC incontrano nei Centri di Ascolto le persone detenute nei quattro istituti di Rebibbia e nel Reparto protetto dell'ospedale Pertini. L'ascolto, l'accompagnamento durante la pena e nei permessi premio, i contatti con le famiglie e il sostegno morale e materiale sono il perno dell'attività dell'associazione, con una presenza costante e personalizzata accanto alle persone detenute.",
+    "urlOriginale": "https://www.vic-odv.org/index.php/mega/attivita-interne/ascolto"
+  },
+  {
+    "id": "accoglienza",
+    "titolo": "Accoglienza",
+    "testo": "Il permesso premio è il primo passo verso il reinserimento, ma senza una casa dove essere ospitati chi è in carcere ha di fatto meno diritti: per questo il VIC gestisce fin dall'inizio una casa di accoglienza. La Casa del VIC, nel quartiere Città Giardino di Roma, accoglie uomini e donne, anche in misura alternativa, ed è aperta ai familiari per favorire la ricomposizione delle relazioni.",
+    "urlOriginale": "https://www.vic-odv.org/index.php/mega/attivita-interne/accoglienza"
+  },
+  {
+    "id": "aiuto",
+    "titolo": "Aiuto",
+    "testo": "In accordo con le direzioni degli istituti, il VIC distribuisce vestiario e prodotti per l'igiene alle persone detenute che non hanno neanche di che coprirsi: abbigliamento, biancheria intima, scarpe, dentifricio, shampoo e asciugamani sono tra le voci più importanti del bilancio dell'associazione. Il carcere è sempre più un luogo per i poveri: chiunque può contribuire alle spese per il vestiario o con donazioni mirate.",
+    "urlOriginale": "https://www.vic-odv.org/index.php/mega/attivita-interne/aiuto"
+  },
+  {
+    "id": "formazione-nuovi-volontari",
+    "titolo": "Formazione nuovi volontari",
+    "testo": "Ogni anno il VIC organizza un corso di informazione e formazione per i futuri volontari, articolato in aree tematiche (gli operatori penitenziari, la magistratura di sorveglianza, l'ordinamento penitenziario, l'ascolto) con relatori esperti e testimonianze di persone detenute ed ex detenute. Dopo gli incontri frontali, i corsisti svolgono un tirocinio nei Centri di Ascolto di Rebibbia affiancati da volontari esperti; al termine chi lo desidera può iscriversi all'associazione.",
+    "urlOriginale": "https://www.vic-odv.org/index.php/mega/attivita-esterne/formazione-nuovi-volontari"
+  },
+  {
+    "id": "formazione-permanente",
+    "titolo": "Formazione permanente",
+    "testo": "Ogni anno il VIC propone ai propri volontari un percorso di formazione permanente, nella convinzione che ogni intervento sociale sia anche un processo di elaborazione culturale. Gli incontri affrontano la giustizia riparativa, le problematiche della vita penitenziaria e la riforma dell'ordinamento, con esperti e testimoni, il supporto di psicologi per il compito di ascolto e il confronto con le altre realtà istituzionali e del Terzo settore.",
+    "urlOriginale": "https://www.vic-odv.org/index.php/mega/attivita-esterne/formazione-permanente-vic"
+  },
+  {
+    "id": "sensibilizzazione",
+    "titolo": "Sensibilizzazione",
+    "testo": "Non c'è reinserimento senza una città solidale e accogliente: per questo l'informazione e la sensibilizzazione sui temi del carcere e della giustizia sono parte integrante del lavoro del VIC. L'associazione promuove incontri con gruppi parrocchiali, associazioni, scuole e università, convinta che la sicurezza della comunità si costruisca non escludendo la persona sanzionata ma aiutandola a diventare cittadino.",
+    "urlOriginale": "https://www.vic-odv.org/index.php/mega/attivita-esterne/sensibilizzazione"
+  }
+]

@@ -1,0 +1,50 @@
+---
+/**
+ * Le attività (spec §4.3): sei blocchi in griglia, 3×2 su desktop e 1 colonna su mobile.
+ * Titolo h3 e due frasi per blocco, letti da src/data/attivita.json (nessun testo nel template).
+ * Nessuna icona, nessuna numerazione. La sezione ha id="attivita": la navigazione punta a /#attivita.
+ * La separazione dall'hero/carosello (stessa superficie) è un bordo superiore in --superficie-scura.
+ */
+import attivita from '../data/attivita.json';
+---
+
+<section class="attivita fascia" id="attivita" aria-labelledby="attivita-titolo">
+  <div class="contenitore">
+    <h2 id="attivita-titolo">Le attività</h2>
+    <ul class="attivita__griglia">
+      {attivita.map((a) => (
+        <li class="attivita__blocco" id={`attivita-${a.id}`}>
+          <h3>{a.titolo}</h3>
+          <p>{a.testo}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .attivita {
+    border-top: var(--spessore-bordo) solid var(--superficie-scura);
+  }
+  .attivita h2 {
+    margin-bottom: var(--spazio-4);
+  }
+  .attivita__griglia {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spazio-4) var(--spazio-3);
+  }
+  @media (min-width: 600px) {
+    .attivita__griglia { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 1024px) {
+    .attivita__griglia { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  .attivita__blocco {
+    padding-top: var(--spazio-2);
+    border-top: var(--spessore-bordo) solid var(--bordo);
+  }
+  .attivita__blocco h3 {
+    margin-bottom: var(--spazio-1);
+  }
+</style>

@@ -1,0 +1,72 @@
+---
+/**
+ * Home (spec §4): hero, campagne in evidenza, attività, anteprima numeri, sostienici, partner.
+ * Titolo e meta description scritti a mano; JSON-LD di tipo NGO con i dati di impostazioni.json.
+ */
+import { getEntry } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import CaroselloCampagne from '../components/CaroselloCampagne.astro';
+import GrigliaAttivita from '../components/GrigliaAttivita.astro';
+import AnteprimaNumeri from '../components/AnteprimaNumeri.astro';
+import BloccoSostegno from '../components/BloccoSostegno.astro';
+import Partner from '../components/Partner.astro';
+import { assoluto } from '../lib/url';
+import og from '../assets/og/home.png';
+import logo from '../assets/logo-vic.png';
+
+const impostazioni = (await getEntry('impostazioni', 'impostazioni'))!.data;
+
+const titolo = 'VIC — Volontari In Carcere OdV, Roma';
+const descrizione =
+  'Il VIC accompagna le persone detenute nei quattro istituti di Rebibbia: colloqui, pacchi vestiario, una casa per i permessi premio. Attività, numeri, come sostenerci.';
+
+// Pagina del corso per nuovi volontari sul sito attuale: usata finché urlVolontari non è nelle impostazioni.
+const URL_CORSO_VOLONTARI = 'https://www.vic-odv.org/index.php/mega/attivita-esterne/formazione-nuovi-volontari';
+const urlVolontari = impostazioni.urlVolontari || URL_CORSO_VOLONTARI || impostazioni.sitoAttuale;
+
+// JSON-LD NGO (spec §9): solo i campi presenti nelle impostazioni, niente valori inventati.
+const { via, cap, citta } = impostazioni.indirizzo;
+const address =
+  via || cap || citta
+    ? {
+        '@type': 'PostalAddress',
+        ...(via ? { streetAddress: via } : {}),
+        ...(cap ? { postalCode: cap } : {}),
+        ...(citta ? { addressLocality: citta } : {}),
+        addressCountry: 'IT',
+      }
+    : undefined;
+const telefoni = impostazioni.telefoni.map((t) => t.numero).filter(Boolean);
+const sameAs = Object.values(impostazioni.social).filter((u): u is string => Boolean(u));
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'NGO',
+  name: impostazioni.nomeEsteso,
+  alternateName: impostazioni.nome,
+  url: assoluto('/'),
+  logo: new URL(logo.src, Astro.site).toString(),
+  taxID: impostazioni.codiceFiscale,
+  areaServed: 'Roma',
+  ...(address ? { address } : {}),
+  ...(telefoni.length > 0 ? { telephone: telefoni.length === 1 ? telefoni[0] : telefoni } : {}),
+  ...(impostazioni.email ? { email: impostazioni.email } : {}),
+  ...(sameAs.length > 0 ? { sameAs } : {}),
+};
+---
+
+<Base
+  titolo={titolo}
+  descrizione={descrizione}
+  ogImage={og}
+  ogAlt="Pannello sabbia in cornice petrolio con il titolo «Ogni giorno entriamo nei quattro istituti di Rebibbia» e la firma VIC — Volontari In Carcere OdV, Roma"
+  jsonLd={jsonLd}
+>
+  <Hero urlSostieni="/sostienici/vesti-un-detenuto-povero" urlVolontari={urlVolontari} />
+  <CaroselloCampagne />
+  <GrigliaAttivita />
+  <AnteprimaNumeri anno="2024" />
+  <BloccoSostegno />
+  <Partner />
+</Base>

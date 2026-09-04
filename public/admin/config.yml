@@ -1,0 +1,409 @@
+# Sveltia CMS — pannello di aggiornamento del sito VIC (spec §7.2).
+# Solo le quattro raccolte qui sotto sono modificabili dal pannello: tutto il resto è codice.
+# Etichette e suggerimenti sono in italiano e nel linguaggio del VIC.
+
+backend:
+  name: github
+  repo: gattcocco/vic-demo
+  branch: main
+  # Accesso con GitHub senza Netlify: serve il "Sveltia CMS Authenticator", un piccolo servizio
+  # OAuth da pubblicare su Cloudflare Workers (https://github.com/sveltia/sveltia-cms-auth).
+  # Una volta pubblicato, sostituire il valore qui sotto con l'indirizzo del worker
+  # (es. https://sveltia-cms-auth.<sottodominio>.workers.dev). I passi sono nel README, sezione 6.
+  # Finché il worker non c'è, si entra con "Sign in with Token" usando un token personale GitHub.
+  base_url: https://sveltia-cms-auth.DA-IMPOSTARE.workers.dev
+
+# Le modifiche passano da una bozza (pull request) prima di andare online.
+publish_mode: editorial_workflow
+
+# Cartella generale della libreria immagini (scheda "Assets" del pannello). Le immagini delle
+# campagne e delle notizie hanno cartelle proprie in src/assets (vedi sotto) e passano da
+# astro:assets; questa cartella è per i file da servire così come sono, per esempio un PDF.
+# Sul dominio proprio (base "/") il percorso pubblico diventa /allegati.
+media_folder: public/allegati
+public_folder: /vic-demo/allegati
+
+site_url: https://gattcocco.github.io/vic-demo/
+display_url: https://gattcocco.github.io/vic-demo/
+
+# L'interfaccia di Sveltia CMS non è ancora tradotta in italiano: i menu di sistema restano in
+# inglese, mentre etichette e suggerimenti delle raccolte qui sotto sono in italiano.
+locale: it
+
+collections:
+  # ---------------------------------------------------------------------------------------
+  - name: campagne
+    label: Campagne in evidenza
+    label_singular: Campagna
+    description: Le card del carosello in home. Ne compaiono tre, nell'ordine indicato dal campo Ordine.
+    folder: src/content/campagne
+    extension: md
+    format: frontmatter
+    create: true
+    identifier_field: titolo
+    summary: "{{ordine}}. {{titolo}}"
+    sortable_fields: [ordine, titolo]
+    # Le immagini vanno in src/assets e vengono scritte nel file con percorso relativo
+    # (../../assets/campagne/nome.jpg): è il formato che astro:assets richiede.
+    media_folder: /src/assets/campagne
+    public_folder: ../../assets/campagne
+    fields:
+      - label: Titolo
+        name: titolo
+        widget: string
+        hint: Il nome della campagna come compare sulla card (es. "Vesti un detenuto povero").
+      - label: Descrizione
+        name: descrizione
+        widget: string
+        hint: Una riga sola sotto il titolo, che dice cosa fa la donazione.
+      - label: Immagine
+        name: immagine
+        widget: image
+        allow_multiple: false
+        media_folder: /src/assets/campagne
+        public_folder: ../../assets/campagne
+        hint: Una fotografia orizzontale (circa 1200×800), non la scansione del volantino. Niente immagini di sbarre, chiavi o celle.
+      - label: Testo alternativo
+        name: alt
+        widget: string
+        hint: Descrivi la fotografia in una frase, per chi non la vede (lettori di schermo).
+      - label: Destinazione
+        name: url
+        widget: string
+        hint: Dove porta la card. Una pagina di questo sito (es. /sostienici/vesti-un-detenuto-povero) oppure un indirizzo completo che inizia con https://
+      - label: Ordine
+        name: ordine
+        widget: number
+        value_type: int
+        min: 1
+        hint: Posizione nel carosello. 1 è la prima card a sinistra.
+      - label: Attiva
+        name: attiva
+        widget: boolean
+        default: true
+        hint: Spegni per togliere la campagna dalla home senza cancellarla.
+
+  # ---------------------------------------------------------------------------------------
+  - name: numeri
+    label: Numeri dell'anno
+    label_singular: Anno
+    description: I dati della pagina "I numeri", un file per anno. Ogni cifra porta con sé la sua definizione e la sua fonte.
+    folder: src/content/numeri
+    extension: json
+    format: json
+    create: true
+    identifier_field: anno
+    slug: "{{slug}}"
+    summary: "{{anno}}"
+    sortable_fields: [anno]
+    fields:
+      - label: Anno
+        name: anno
+        widget: number
+        value_type: int
+        min: 1994
+        hint: L'anno a cui si riferiscono i dati (es. 2024). Diventa anche l'indirizzo della pagina, /numeri/2024.
+      - label: Aggiornato il
+        name: aggiornato
+        widget: datetime
+        format: YYYY-MM-DD
+        time_format: false
+        hint: Data dell'ultimo controllo dei dati.
+      - label: Sezioni
+        name: sezioni
+        widget: list
+        label_singular: Sezione
+        summary: "{{fields.titolo}}"
+        hint: Le aree di attività (Ascolto, Accoglienza, Aiuti, Sensibilizzazione), ciascuna con le sue cifre.
+        fields:
+          - label: Identificativo
+            name: id
+            widget: string
+            pattern: ["^[a-z0-9-]+$", "Solo lettere minuscole, numeri e trattini"]
+            hint: Nome tecnico senza spazi né maiuscole (es. ascolto). Non cambiarlo da un anno all'altro.
+          - label: Titolo
+            name: titolo
+            widget: string
+            hint: Il titolo della sezione come compare in pagina (es. Ascolto).
+          - label: Voci
+            name: voci
+            widget: list
+            label_singular: Voce
+            summary: "{{fields.etichetta}}: {{fields.valore}}"
+            hint: Le cifre della sezione. Ogni voce ha un valore, un'etichetta, una definizione e una fonte.
+            fields:
+              - label: Identificativo
+                name: id
+                widget: string
+                pattern: ["^[a-z0-9-]+$", "Solo lettere minuscole, numeri e trattini"]
+                hint: Nome tecnico senza spazi (es. pacchi-vestiario). I grafici lo usano per trovare la cifra, non cambiarlo.
+              - label: Valore
+                name: valore
+                widget: number
+                value_type: float
+                hint: Solo il numero, senza punti né spazi (es. 1082). Il sito lo scrive come 1.082.
+              - label: Etichetta
+                name: etichetta
+                widget: string
+                hint: Cosa misura la cifra, in poche parole (es. Pacchi vestiario consegnati).
+              - label: Definizione
+                name: definizione
+                widget: text
+                hint: Come si conta esattamente questa cifra, in una o due frasi. Evita che home e pagine interne diano numeri diversi.
+              - label: Fonte
+                name: fonte
+                widget: string
+                hint: Da dove viene il dato (es. Relazione annuale VIC 2024).
+              - label: Dettaglio
+                name: dettaglio
+                widget: list
+                label_singular: Parte
+                required: false
+                summary: "{{fields.etichetta}}: {{fields.valore}}"
+                hint: Facoltativo. Come si scompone la cifra (es. 510 a uomini, 572 a donne). La somma deve tornare col valore.
+                fields:
+                  - label: Identificativo
+                    name: id
+                    widget: string
+                    pattern: ["^[a-z0-9-]+$", "Solo lettere minuscole, numeri e trattini"]
+                    hint: Nome tecnico senza spazi (es. uomini).
+                  - label: Etichetta
+                    name: etichetta
+                    widget: string
+                    hint: Il nome della parte (es. A uomini).
+                  - label: Valore
+                    name: valore
+                    widget: number
+                    value_type: float
+                    hint: Solo il numero.
+      - label: Contesto
+        name: contesto
+        widget: list
+        label_singular: Dato di contesto
+        summary: "{{fields.etichetta}}"
+        hint: Dati esterni al VIC usati per il confronto (es. le persone detenute a Rebibbia). Vanno da fonte ufficiale, con data e link.
+        fields:
+          - label: Identificativo
+            name: id
+            widget: string
+            pattern: ["^[a-z0-9-]+$", "Solo lettere minuscole, numeri e trattini"]
+            hint: Nome tecnico senza spazi (es. detenuti-rebibbia).
+          - label: Valore
+            name: valore
+            widget: number
+            value_type: float
+            required: false
+            hint: Lascia vuoto finché il dato non è verificato su una fonte ufficiale. Il sito mostra un segnaposto dichiarato, mai una cifra inventata.
+          - label: Etichetta
+            name: etichetta
+            widget: string
+            hint: Cosa misura il dato (es. Persone detenute nei quattro istituti di Rebibbia).
+          - label: Fonte
+            name: fonte
+            widget: string
+            hint: L'ente che pubblica il dato (es. Ministero della Giustizia — Statistiche detenuti).
+          - label: Link alla fonte
+            name: url
+            widget: string
+            required: false
+            hint: L'indirizzo completo della pagina da cui è preso il dato, per chi vuole verificare.
+          - label: Data di rilevazione
+            name: rilevazione
+            widget: string
+            required: false
+            hint: Quando è stato rilevato il dato, come lo scrive la fonte (es. 31 dicembre 2024).
+          - label: Nota
+            name: nota
+            widget: text
+            required: false
+            hint: Facoltativa. Avvertenze sulla lettura del dato o sul suo stato (da reperire, provvisorio…).
+
+  # ---------------------------------------------------------------------------------------
+  - name: post
+    label: Notizie
+    label_singular: Notizia
+    description: Le notizie del VIC, in ordine di data. Una notizia in bozza non compare sul sito.
+    folder: src/content/post
+    extension: md
+    format: frontmatter
+    create: true
+    identifier_field: titolo
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    summary: "{{data}} — {{titolo}}"
+    sortable_fields: [data, titolo]
+    view_filters:
+      - label: Pubblicate
+        field: bozza
+        pattern: false
+      - label: In bozza
+        field: bozza
+        pattern: true
+    # Le immagini delle notizie (campo Immagine e foto nel testo) vanno in src/assets/post e
+    # vengono scritte con percorso relativo (../../assets/post/nome.jpg) per astro:assets.
+    media_folder: /src/assets/post
+    public_folder: ../../assets/post
+    fields:
+      - label: Titolo
+        name: titolo
+        widget: string
+        hint: Il titolo della notizia. Diventa anche parte dell'indirizzo della pagina.
+      - label: Data
+        name: data
+        widget: datetime
+        format: YYYY-MM-DD
+        time_format: false
+        hint: La data di pubblicazione. Le notizie compaiono dalla più recente.
+      - label: Sommario
+        name: sommario
+        widget: text
+        hint: Due righe che riassumono la notizia. Compaiono nell'elenco e nelle anteprime sui social.
+      - label: Immagine
+        name: immagine
+        widget: image
+        required: false
+        allow_multiple: false
+        media_folder: /src/assets/post
+        public_folder: ../../assets/post
+        hint: Facoltativa. Una fotografia del VIC, non la scansione di un volantino. Niente immagini di sbarre, chiavi o celle.
+      - label: Testo alternativo
+        name: alt
+        widget: string
+        required: false
+        hint: Se c'è l'immagine, descrivila in una frase per chi non la vede.
+      - label: Bozza
+        name: bozza
+        widget: boolean
+        default: false
+        hint: Acceso = la notizia resta nascosta. Spegni quando è pronta per andare online.
+      - label: Testo
+        name: body
+        widget: markdown
+        hint: Il testo della notizia. Usa "persona detenuta" nei testi descrittivi; il nome della campagna "Vesti un detenuto povero" resta com'è.
+
+  # ---------------------------------------------------------------------------------------
+  - name: impostazioni
+    label: Impostazioni
+    description: I dati dell'associazione usati in tutto il sito (piè di pagina, blocchi di donazione, contatti).
+    files:
+      - name: impostazioni
+        label: Dati dell'associazione
+        file: src/data/impostazioni.json
+        fields:
+          - label: Sigla
+            name: nome
+            widget: string
+            hint: La sigla dell'associazione (VIC). Compare nella testata.
+          - label: Nome per esteso
+            name: nomeEsteso
+            widget: string
+            hint: La denominazione completa (Volontari In Carcere OdV).
+          - label: Frase sotto il nome
+            name: slogan
+            widget: string
+            hint: Una riga nel piè di pagina, sotto il nome (es. Dal 1999 nei quattro istituti di Rebibbia).
+          - label: Codice fiscale
+            name: codiceFiscale
+            widget: string
+            pattern: ["^[0-9]{11}$", "Undici cifre, senza spazi"]
+            hint: Serve per il 5x1000 e per la detraibilità. Compare copiabile in più punti del sito.
+          - label: IBAN
+            name: iban
+            widget: string
+            pattern: ["^IT[0-9A-Z]{25}$", "Formato IT + 25 caratteri, senza spazi"]
+            hint: Il conto per i bonifici, senza spazi. Il sito lo mostra spaziato e copiabile.
+          - label: Banca
+            name: banca
+            widget: string
+            hint: Il nome della banca (es. Banca Intesa Sanpaolo).
+          - label: Intestatario del conto
+            name: intestatario
+            widget: string
+            hint: A chi va intestato il bonifico (Volontari In Carcere OdV).
+          - label: Link PayPal
+            name: paypal
+            widget: string
+            required: false
+            hint: L'indirizzo completo del pulsante di donazione PayPal. Vuoto = il sito mostra un segnaposto dichiarato.
+          - label: Telefoni
+            name: telefoni
+            widget: list
+            label_singular: Telefono
+            required: false
+            summary: "{{fields.etichetta}}: {{fields.numero}}"
+            hint: I numeri di telefono da mostrare nel piè di pagina, con un'etichetta ciascuno.
+            fields:
+              - label: Etichetta
+                name: etichetta
+                widget: string
+                hint: A cosa risponde il numero (es. Segreteria).
+              - label: Numero
+                name: numero
+                widget: string
+                hint: Con prefisso internazionale e spazi come si legge (es. +39 06 4062508).
+          - label: Email
+            name: email
+            widget: string
+            required: false
+            hint: L'indirizzo di posta principale dell'associazione.
+          - label: Indirizzo
+            name: indirizzo
+            widget: object
+            hint: La sede. Se la via è vuota il sito non mostra l'indirizzo.
+            fields:
+              - label: Via e numero civico
+                name: via
+                widget: string
+                required: false
+                hint: Es. Via Rossi 1.
+              - label: CAP
+                name: cap
+                widget: string
+                required: false
+                hint: Cinque cifre.
+              - label: Città
+                name: citta
+                widget: string
+                hint: Es. Roma.
+          - label: Orari
+            name: orari
+            widget: string
+            required: false
+            hint: Quando risponde la segreteria, in una riga (es. lunedì–venerdì 9–13). Vuoto = non compare.
+          - label: Social
+            name: social
+            widget: object
+            hint: Gli indirizzi completi delle pagine social. Lascia vuoto quello che non c'è.
+            fields:
+              - label: Facebook
+                name: facebook
+                widget: string
+                required: false
+                hint: Indirizzo completo della pagina Facebook.
+              - label: Instagram
+                name: instagram
+                widget: string
+                required: false
+                hint: Indirizzo completo del profilo Instagram.
+              - label: YouTube
+                name: youtube
+                widget: string
+                required: false
+                hint: Indirizzo completo del canale YouTube.
+              - label: LinkedIn
+                name: linkedin
+                widget: string
+                required: false
+                hint: Indirizzo completo della pagina LinkedIn, se esiste.
+          - label: Sito attuale
+            name: sitoAttuale
+            widget: string
+            hint: L'indirizzo del sito in uso oggi (https://www.vic-odv.org). La demo ci manda per le pagine non ancora ricostruite.
+          - label: Pagina "Diventa volontario"
+            name: urlVolontari
+            widget: string
+            required: false
+            hint: Dove porta il pulsante "Diventa volontario" della home. Oggi la pagina del corso sul sito attuale.
+          - label: Iscrizione al RUNTS
+            name: runts
+            widget: string
+            hint: La riga sul registro del Terzo settore che compare nel piè di pagina (es. Iscritta al RUNTS — Repertorio n. …).

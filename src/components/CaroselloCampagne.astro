@@ -1,0 +1,161 @@
+---
+/**
+ * Campagne in evidenza (spec §4.2): un solo componente, due comportamenti.
+ * - Sopra 768px: griglia a tre colonne, tutte le card visibili, nessun controllo.
+ * - Sotto 768px: scorrimento orizzontale con scroll-snap, card a 85vw, indicatori di posizione sotto.
+ * Nessun autoplay, nessuna freccia. Le card sono nel flusso: da tastiera il link del titolo
+ * riceve il focus e la card scorre in vista da sola (scroll-padding + scroll-margin).
+ * Gli indicatori sono un <ol> con il testo "1 di 3" per gli screen reader; un <p role="status">
+ * annuncia la card corrente, aggiornato da un IntersectionObserver attivo solo sotto 768px.
+ */
+import { getCollection } from 'astro:content';
+import CardCampagna from './CardCampagna.astro';
+
+const campagne = (await getCollection('campagne', ({ data }) => data.attiva)).sort(
+  (a, b) => a.data.ordine - b.data.ordine,
+);
+const totale = campagne.length;
+---
+
+{totale > 0 && (
+  <section class="campagne fascia" aria-labelledby="campagne-titolo">
+    <div class="contenitore" data-carosello>
+      <h2 id="campagne-titolo">Le campagne in evidenza</h2>
+
+      <ul class="carosello" data-scorritore aria-label="Campagne">
+        {campagne.map((c, i) => (
+          <li class="carosello__voce" data-voce data-titolo={c.data.titolo}>
+            <CardCampagna
+              titolo={c.data.titolo}
+              descrizione={c.data.descrizione}
+              immagine={c.data.immagine}
+              alt={c.data.alt}
+              url={c.data.url}
+              prioritaria={i === 0}
+            />
+          </li>
+        ))}
+      </ul>
+
+      {totale > 1 && (
+        <>
+          <ol class="indicatori" aria-label="Posizione nel carosello">
+            {campagne.map((c, i) => (
+              <li
+                class:list={['indicatori__punto', { 'indicatori__punto--attivo': i === 0 }]}
+                data-punto
+                aria-current={i === 0 ? 'true' : undefined}
+              >
+                <span class="sr-only">{i + 1} di {totale}: {c.data.titolo}</span>
+              </li>
+            ))}
+          </ol>
+          <p class="sr-only" role="status" aria-live="polite" data-stato></p>
+        </>
+      )}
+    </div>
+  </section>
+)}
+
+<script>
+  const mobile = window.matchMedia('(max-width: 767.98px)');
+
+  for (const blocco of document.querySelectorAll<HTMLElement>('[data-carosello]')) {
+    const scorritore = blocco.querySelector<HTMLElement>('[data-scorritore]');
+    const stato = blocco.querySelector<HTMLElement>('[data-stato]');
+    if (!scorritore || !stato) continue;
+    const voci = Array.from(scorritore.querySelectorAll<HTMLElement>('[data-voce]'));
+    const punti = Array.from(blocco.querySelectorAll<HTMLElement>('[data-punto]'));
+    let corrente = 0;
+    let osservatore: IntersectionObserver | null = null;
+
+    const aggiorna = (indice: number) => {
+      if (indice < 0 || indice === corrente) return;
+      corrente = indice;
+      punti.forEach((punto, i) => {
+        punto.classList.toggle('indicatori__punto--attivo', i === indice);
+        if (i === indice) punto.setAttribute('aria-current', 'true');
+        else punto.removeAttribute('aria-current');
+      });
+      stato.textContent = `${voci[indice].dataset.titolo ?? ''}, ${indice + 1} di ${voci.length}`;
+    };
+
+    const attiva = () => {
+      if (osservatore || !('IntersectionObserver' in window)) return;
+      osservatore = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) if (e.isIntersecting) aggiorna(voci.indexOf(e.target as HTMLElement));
+        },
+        { root: scorritore, threshold: 0.6 },
+      );
+      for (const voce of voci) osservatore.observe(voce);
+    };
+    const disattiva = () => {
+      osservatore?.disconnect();
+      osservatore = null;
+    };
+    const applica = () => (mobile.matches ? attiva() : disattiva());
+
+    applica();
+    mobile.addEventListener('change', applica);
+  }
+</script>
+
+<style>
+  .campagne {
+    padding-top: 0;
+  }
+  .campagne h2 {
+    margin-bottom: var(--spazio-3);
+  }
+
+  /* Sopra 768px: griglia a tre colonne, nessun controllo. */
+  .carosello {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--spazio-3);
+  }
+  .indicatori {
+    display: none;
+  }
+
+  /* Sotto 768px: scorrimento orizzontale con snap, card a 85vw. */
+  @media (max-width: 767.98px) {
+    .carosello {
+      display: flex;
+      gap: var(--spazio-2);
+      margin-inline: calc(-1 * var(--gutter));
+      padding-inline: var(--gutter);
+      padding-bottom: var(--spazio-1);
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--gutter);
+      scrollbar-width: thin;
+    }
+    .carosello__voce {
+      flex: 0 0 85vw;
+      max-width: 85vw;
+      scroll-snap-align: start;
+      scroll-margin-inline: var(--gutter);
+    }
+    .carosello__voce :global(a) {
+      scroll-margin-inline: var(--gutter);
+    }
+    .indicatori {
+      display: flex;
+      gap: var(--spazio-1);
+      margin-top: var(--spazio-2);
+    }
+    /* Pallini quadrati: il corrente è pieno, gli altri a contorno (non solo colore). */
+    .indicatori__punto {
+      width: 14px;
+      height: 14px;
+      border: var(--spessore-bordo) solid var(--superficie-scura);
+      background: transparent;
+    }
+    .indicatori__punto--attivo {
+      background: var(--superficie-scura);
+    }
+  }
+</style>

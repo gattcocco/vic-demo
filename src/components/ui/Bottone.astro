@@ -1,0 +1,48 @@
+---
+/**
+ * Pulsante-link. `primario` è pieno, `secondario` a contorno.
+ * Sulle fasce sabbia e scure i colori si adattano da soli (vedi :global sotto).
+ * Niente freccia appesa al testo, niente transizioni oltre il cambio di colore.
+ */
+import { href as conBase, esterno as isEsterno } from '../../lib/url';
+
+interface Props {
+  href: string;
+  variante?: 'primario' | 'secondario';
+  classe?: string;
+}
+const { href, variante = 'primario', classe } = Astro.props;
+const esterno = isEsterno(href);
+---
+<a
+  class:list={['bottone', `bottone--${variante}`, classe]}
+  href={conBase(href)}
+  {...esterno ? { target: '_blank', rel: 'noopener' } : {}}
+><slot /></a>
+
+<style>
+  .bottone {
+    display: inline-block;
+    padding: .7em 1.4em;
+    min-height: 48px;
+    font-weight: 600;
+    line-height: 1.3;
+    text-decoration: none;
+    border: var(--spessore-bordo) solid var(--azione);
+    text-align: left;
+  }
+  .bottone--primario { background: var(--azione); color: var(--azione-testo); }
+  .bottone--primario:hover { background: var(--testo); border-color: var(--testo); }
+  .bottone--secondario { background: transparent; color: var(--azione); }
+  .bottone--secondario:hover { background: var(--azione); color: var(--azione-testo); }
+
+  :global(.fascia--alt) .bottone--primario { background: var(--testo); border-color: var(--testo); color: var(--superficie); }
+  :global(.fascia--alt) .bottone--primario:hover { background: var(--superficie-scura); border-color: var(--superficie-scura); }
+  :global(.fascia--alt) .bottone--secondario { color: var(--testo); border-color: var(--testo); }
+  :global(.fascia--alt) .bottone--secondario:hover { background: var(--testo); color: var(--superficie); }
+
+  :global(.fascia--scura) .bottone--primario { background: var(--superficie-alt); border-color: var(--superficie-alt); color: var(--testo); }
+  :global(.fascia--scura) .bottone--primario:hover { background: var(--superficie); border-color: var(--superficie); }
+  :global(.fascia--scura) .bottone--secondario { color: var(--superficie); border-color: var(--superficie); }
+  :global(.fascia--scura) .bottone--secondario:hover { background: var(--superficie); color: var(--testo); }
+</style>

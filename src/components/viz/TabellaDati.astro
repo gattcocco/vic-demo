@@ -1,0 +1,69 @@
+---
+/**
+ * Tabella con gli stessi dati di un grafico, dentro un <details> con summary
+ * "Vedi i dati in tabella". È nel DOM, indicizzabile, non aria-hidden (spec §5.3).
+ * La prima colonna è l'intestazione di riga; le celle numeriche si allineano a destra
+ * con cifre tabulari e vengono formattate in italiano.
+ *
+ *   <TabellaDati caption="Pacchi vestiario 2024" colonne={['Destinatari', 'Pacchi']}
+ *     righe={[['Uomini', 510], ['Donne', 572], ['Totale', 1082]]} />
+ */
+import { numero } from '../../lib/formato';
+
+interface Props {
+  caption: string;
+  colonne: string[];
+  righe: (string | number)[][];
+  aperta?: boolean;
+  id?: string;
+}
+const { caption, colonne, righe, aperta = false, id } = Astro.props;
+const numerica = colonne.map((_, i) => righe.some((r) => typeof r[i] === 'number'));
+---
+
+<details class="tabella-dettagli" open={aperta} id={id}>
+  <summary>Vedi i dati in tabella</summary>
+  <table class="tabella-dati">
+    <caption>{caption}</caption>
+    <thead>
+      <tr>
+        {colonne.map((c, i) => (
+          <th scope="col" class:list={{ numero: numerica[i] }}>{c}</th>
+        ))}
+      </tr>
+    </thead>
+    <tbody>
+      {righe.map((riga) => (
+        <tr>
+          {riga.map((cella, i) =>
+            i === 0 ? (
+              <th scope="row">{cella}</th>
+            ) : (
+              <td class:list={{ numero: typeof cella === 'number' }}>
+                {typeof cella === 'number' ? numero(cella) : cella}
+              </td>
+            ),
+          )}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</details>
+
+<style>
+  .tabella-dettagli {
+    margin-top: var(--spazio-3);
+    border-top: 1px solid var(--bordo);
+  }
+  summary {
+    cursor: pointer;
+    padding: .6em 0;
+    font-weight: 600;
+  }
+  .tabella-dettagli[open] summary {
+    border-bottom: 1px solid var(--bordo);
+  }
+  table {
+    margin-top: var(--spazio-2);
+  }
+</style>

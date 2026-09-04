@@ -1,0 +1,76 @@
+---
+/**
+ * Pagina di una singola notizia: titolo, data in italiano, immagine facoltativa, corpo Markdown.
+ * Le notizie in bozza non generano nessuna pagina.
+ */
+import { getCollection, render } from 'astro:content';
+import { Picture } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import { href } from '../../lib/url';
+import og from '../../assets/og/home.png';
+
+export async function getStaticPaths() {
+  const notizie = await getCollection('post', ({ data }) => !data.bozza);
+  return notizie.map((notizia) => ({ params: { slug: notizia.id }, props: { notizia } }));
+}
+
+const { notizia } = Astro.props;
+const { Content } = await render(notizia);
+const { titolo, data, sommario, immagine, alt } = notizia.data;
+
+const dataLunga = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const dataIso = data.toISOString().slice(0, 10);
+
+// Larghezza della colonna di lettura; l'altezza mantiene le proporzioni dell'originale.
+const larghezza = 960;
+const altezza = immagine ? Math.round((larghezza * immagine.height) / immagine.width) : 0;
+---
+
+<Base
+  titolo={`${titolo} — Notizie VIC`}
+  descrizione={sommario}
+  ogImage={og}
+  ogAlt="Ogni giorno entriamo nei quattro istituti di Rebibbia. VIC — Volontari In Carcere OdV, Roma"
+  tipoOg="article"
+>
+  <article class="fascia">
+    <div class="contenitore griglia-12">
+      <div class="lettura pila">
+        <p><a href={href('/notizie')}>Tutte le notizie</a></p>
+
+        <header class="intestazione">
+          <time class="debole" datetime={dataIso}>{dataLunga.format(data)}</time>
+          <h1>{titolo}</h1>
+          <p class="sommario">{sommario}</p>
+        </header>
+
+        {immagine && (
+          <Picture
+            src={immagine}
+            formats={['avif']}
+            fallbackFormat="webp"
+            width={larghezza}
+            height={altezza}
+            alt={alt ?? ''}
+          />
+        )}
+
+        <div class="prosa">
+          <Content />
+        </div>
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .intestazione {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spazio-2);
+  }
+  .sommario {
+    font-size: 1.15em;
+    color: var(--testo-debole);
+  }
+</style>

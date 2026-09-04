@@ -1,0 +1,116 @@
+---
+/**
+ * Mostra un valore da copiare (IBAN, codice fiscale) con un pulsante "Copia".
+ * La conferma "Copiato" resta visibile accanto al pulsante: non è un toast che sparisce.
+ * Senza JavaScript (o senza API appunti) il pulsante non compare e il valore resta
+ * selezionabile a mano.
+ *
+ *   <CopiaIban id="iban" etichetta="IBAN" valore={impostazioni.iban} spaziato />
+ *   <CopiaIban id="cf" etichetta="Codice fiscale" valore={impostazioni.codiceFiscale} />
+ */
+interface Props {
+  id: string;
+  etichetta: string;
+  valore: string;
+  spaziato?: boolean;
+}
+const { id, etichetta, valore, spaziato = false } = Astro.props;
+---
+
+<div class="copia" data-copia>
+  <span class="copia__etichetta">{etichetta}</span>
+  <span class:list={['copia__valore', { 'copia__valore--spaziato': spaziato }]} id={id}>{valore}</span>
+  <button type="button" class="copia__bottone" data-valore={valore} hidden>
+    Copia {etichetta.toLowerCase()}
+  </button>
+  <span class="copia__stato" role="status" aria-live="polite"></span>
+</div>
+
+<script>
+  for (const blocco of document.querySelectorAll<HTMLElement>('[data-copia]')) {
+    const bottone = blocco.querySelector<HTMLButtonElement>('.copia__bottone');
+    const stato = blocco.querySelector<HTMLElement>('.copia__stato');
+    if (!bottone || !stato || !navigator.clipboard) continue;
+    bottone.hidden = false;
+    bottone.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(bottone.dataset.valore ?? '');
+        stato.textContent = 'Copiato';
+        blocco.classList.add('copia--fatto');
+      } catch {
+        stato.textContent = 'Non riesco a copiare: seleziona il testo e copialo a mano.';
+      }
+    });
+  }
+</script>
+
+<style>
+  .copia {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spazio-1) var(--spazio-2);
+  }
+  .copia__etichetta {
+    flex: 0 0 100%;
+    color: var(--testo-debole);
+  }
+  .copia__valore {
+    font-weight: 600;
+    font-size: 1.15em;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+    user-select: all;
+  }
+  .copia__valore--spaziato {
+    letter-spacing: .06em;
+  }
+  .copia__bottone {
+    min-height: 44px;
+    padding: .4em 1em;
+    background: transparent;
+    color: var(--azione);
+    border: var(--spessore-bordo) solid var(--azione);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .copia__bottone:hover,
+  .copia--fatto .copia__bottone {
+    background: var(--azione);
+    color: var(--azione-testo);
+  }
+  .copia__stato {
+    font-weight: 600;
+  }
+  .copia__stato:empty {
+    display: none;
+  }
+
+  /* Su fascia sabbia --azione non regge il contrasto a corpo testo: si usa --testo. */
+  :global(.fascia--alt) .copia__bottone {
+    color: var(--testo);
+    border-color: var(--testo);
+  }
+  :global(.fascia--alt) .copia__bottone:hover,
+  :global(.fascia--alt) .copia--fatto .copia__bottone {
+    background: var(--testo);
+    color: var(--superficie);
+  }
+  :global(.fascia--alt) .copia__etichetta {
+    color: var(--testo);
+  }
+
+  :global(.fascia--scura) .copia__bottone {
+    color: var(--superficie);
+    border-color: var(--superficie);
+  }
+  :global(.fascia--scura) .copia__bottone:hover,
+  :global(.fascia--scura) .copia--fatto .copia__bottone {
+    background: var(--superficie-alt);
+    border-color: var(--superficie-alt);
+    color: var(--testo);
+  }
+  :global(.fascia--scura) .copia__etichetta {
+    color: var(--superficie-alt);
+  }
+</style>

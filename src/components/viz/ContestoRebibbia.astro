@@ -1,0 +1,145 @@
+---
+/**
+ * Il contesto (spec §5.2): confronto tra le persone incontrate dal VIC in un anno e la popolazione
+ * detenuta presente nei quattro istituti di Rebibbia in un giorno, da fonte ufficiale citata con data.
+ * Se il valore ufficiale manca (null), la seconda barra è a tratteggio, senza numero, con un
+ * segnaposto dichiarato: la cifra non si inventa (vincolo 5).
+ *
+ *   <ContestoRebibbia anno={2024} incontrate={6000} contesto={entry.data.contesto[0]} />
+ */
+import TabellaDati from './TabellaDati.astro';
+import { numero } from '../../lib/formato';
+
+interface Contesto {
+  id: string;
+  valore: number | null;
+  etichetta: string;
+  fonte: string;
+  url: string;
+  rilevazione: string;
+  nota?: string;
+}
+interface Props {
+  anno: number;
+  incontrate: number;
+  contesto: Contesto;
+}
+const { anno, incontrate, contesto } = Astro.props;
+
+const disponibile = contesto.valore !== null;
+const dataRilevazione = contesto.rilevazione
+  ? new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(contesto.rilevazione))
+  : '';
+
+// Geometria (unità del viewBox): etichetta sopra ogni barra, valore in coda alla barra.
+const L = 400;
+const LARGHEZZA_BARRE = 300;
+const ALTEZZA = 30;
+const massimo = Math.max(incontrate, contesto.valore ?? 0);
+const larghezza1 = (incontrate / massimo) * LARGHEZZA_BARRE;
+const larghezza2 = disponibile ? ((contesto.valore as number) / massimo) * LARGHEZZA_BARRE : larghezza1;
+
+const etichetta1 = `Persone incontrate dal VIC nel ${anno}`;
+const etichetta2 = disponibile
+  ? `Persone detenute a Rebibbia al ${dataRilevazione}`
+  : 'Persone detenute a Rebibbia';
+
+const titolo = `Persone incontrate dal VIC nel ${anno} e popolazione detenuta di Rebibbia`;
+const descrizione = disponibile
+  ? `Due barre orizzontali: ${numero(incontrate)} persone incontrate dal VIC nel corso del ${anno} e ${numero(contesto.valore as number)} persone detenute presenti nei quattro istituti di Rebibbia al ${dataRilevazione} (fonte: Ministero della Giustizia). Le persone incontrate in un anno sono più della popolazione presente in un giorno, perché nel corso dell'anno le persone entrano ed escono dagli istituti.`
+  : `Due barre orizzontali: ${numero(incontrate)} persone incontrate dal VIC nel corso del ${anno} e, a tratteggio e senza numero, la popolazione detenuta di Rebibbia, il cui dato ufficiale è ancora in attesa di fonte.`;
+---
+
+<div class="contesto">
+  <svg class="contesto__grafico" viewBox={`0 0 ${L} 150`} role="img" aria-labelledby="contesto-titolo contesto-desc">
+    <title id="contesto-titolo">{titolo}</title>
+    <desc id="contesto-desc">{descrizione}</desc>
+    <defs>
+      <pattern id="tratteggio-contesto" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+        <rect class="tratteggio__fondo" width="6" height="6" />
+        <line class="tratteggio__linea" x1="0" y1="0" x2="0" y2="6" />
+      </pattern>
+    </defs>
+
+    <g>
+      <text class="etichetta" x="0" y="16">{etichetta1}</text>
+      <rect class="barra barra--1" x="0" y="24" width={larghezza1} height={ALTEZZA} />
+      <text class="etichetta etichetta--valore" x={larghezza1 + 8} y="45">{numero(incontrate)}</text>
+    </g>
+    <g>
+      <text class="etichetta" x="0" y="92">{etichetta2}</text>
+      {disponibile ? (
+        <>
+          <rect class="barra barra--2" x="0" y="100" width={larghezza2} height={ALTEZZA} />
+          <text class="etichetta etichetta--valore" x={larghezza2 + 8} y="121">{numero(contesto.valore as number)}</text>
+        </>
+      ) : (
+        <>
+          <rect class="barra barra--nd" x="0" y="100" width={larghezza2} height={ALTEZZA} fill="url(#tratteggio-contesto)" />
+          <text class="etichetta etichetta--nd" x="0" y="146">dato in attesa di fonte ufficiale</text>
+        </>
+      )}
+    </g>
+  </svg>
+
+  <div class="contesto__testo prosa">
+    {disponibile ? (
+      <p class="piccolo debole">
+        Popolazione detenuta: {numero(contesto.valore as number)} persone presenti nei quattro istituti di Rebibbia al{' '}
+        {dataRilevazione}. Fonte: {contesto.fonte}
+        {contesto.url && (
+          <>
+            {' '}(<a href={contesto.url} target="_blank" rel="noopener">tabella sul sito del Ministero</a>)
+          </>
+        )}.
+        {contesto.nota && <> {contesto.nota}</>}
+      </p>
+    ) : (
+      <p>
+        <strong>Il dato sulla popolazione detenuta non è stato inserito</strong> perché non è stato ancora verificato: va
+        preso da una fonte ufficiale con data di rilevazione (Ministero della Giustizia, statistiche dei detenuti presenti
+        per istituto) e citato con il link. Finché manca, la barra resta a tratteggio e senza numero.
+        {contesto.nota && <> {contesto.nota}</>}
+      </p>
+    )}
+    <p>
+      <strong>Come leggere il confronto.</strong> Le persone incontrate dal VIC in un anno sono più di quelle presenti a
+      Rebibbia in un giorno, e non è un errore: durante l'anno le persone entrano ed escono dagli istituti, quindi chi passa
+      da Rebibbia nei dodici mesi è molto più di chi c'è in una data precisa. Il confronto dice quanto è capillare la presenza
+      dei volontari, non una percentuale di copertura.
+    </p>
+  </div>
+
+  <TabellaDati
+    caption={`Persone incontrate dal VIC nel ${anno} e popolazione detenuta di Rebibbia`}
+    colonne={['Voce', 'Persone']}
+    righe={[
+      [etichetta1, incontrate],
+      [etichetta2, disponibile ? (contesto.valore as number) : 'n.d. (dato in attesa di fonte ufficiale)'],
+    ]}
+  />
+</div>
+
+<style>
+  .contesto__grafico {
+    width: 100%;
+    max-width: 40rem;
+    height: auto;
+    overflow: visible;
+  }
+  .barra { stroke: var(--dato-bordo); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .barra--1 { fill: var(--dato-1); }
+  .barra--2 { fill: var(--dato-2); }
+  .tratteggio__fondo { fill: var(--superficie); }
+  .tratteggio__linea { stroke: var(--dato-bordo); stroke-width: 2; }
+  .etichetta {
+    font-family: var(--font-testo);
+    font-size: 14px;
+    font-weight: 600;
+    fill: var(--testo);
+  }
+  .etichetta--valore { font-size: 17px; font-variant-numeric: tabular-nums; }
+  .etichetta--nd { font-weight: 400; font-style: italic; }
+
+  .contesto__testo { margin-top: var(--spazio-4); }
+</style>

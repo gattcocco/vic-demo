@@ -1,0 +1,168 @@
+---
+/**
+ * Waffle dei pacchi vestiario (spec §5.2): un quadratino per pacco, blocchi da 100 (10×10),
+ * i primi `uomini` quadratini in --dato-1 e i successivi `donne` in --dato-2, ognuno con
+ * bordo 1px in --dato-bordo (§2.4). I blocchi sono <svg> distinti disposti in una griglia CSS,
+ * così l'a capo è responsive senza calcoli in SVG.
+ *
+ * È l'unico momento animato del sito: le righe compaiono in sequenza quando il grafico
+ * entra nel viewport (durata complessiva sotto 1,2 s). Senza JavaScript, o con
+ * prefers-reduced-motion, il grafico è già pieno.
+ *
+ *   <WaffleVestiario totale={1082} uomini={510} donne={572} anno={2024} />
+ */
+import TabellaDati from './TabellaDati.astro';
+import { numero } from '../../lib/formato';
+
+interface Props {
+  totale: number;
+  uomini: number;
+  donne: number;
+  anno: number;
+}
+const { totale, uomini, donne, anno } = Astro.props;
+
+const PER_RIGA = 10;
+const RIGHE_PER_BLOCCO = 10;
+const PER_BLOCCO = PER_RIGA * RIGHE_PER_BLOCCO;
+const CELLA = 10;
+const LATO = 8;
+const SCARTO = (CELLA - LATO) / 2;
+
+const nBlocchi = Math.ceil(totale / PER_BLOCCO);
+const blocchi = Array.from({ length: nBlocchi }, (_, b) => {
+  const righe = [];
+  for (let r = 0; r < RIGHE_PER_BLOCCO; r++) {
+    const primo = b * PER_BLOCCO + r * PER_RIGA;
+    if (primo >= totale) break;
+    const celle = [];
+    for (let c = 0; c < PER_RIGA; c++) {
+      const k = primo + c;
+      if (k >= totale) break;
+      celle.push({ x: c * CELLA + SCARTO, y: r * CELLA + SCARTO, donna: k >= uomini });
+    }
+    righe.push({ indice: b * RIGHE_PER_BLOCCO + r, celle });
+  }
+  return righe;
+});
+
+const titolo = `Pacchi vestiario consegnati nel ${anno}: ${numero(totale)}`;
+const descrizione = `Grafico a quadratini: ogni quadratino è un pacco consegnato. ${numero(uomini)} quadratini in petrolio per i pacchi consegnati a uomini e ${numero(donne)} in sabbia per quelli consegnati a donne, in blocchi da cento. I pacchi consegnati a donne sono più di quelli consegnati a uomini.`;
+---
+
+<div class="waffle" data-waffle>
+  <p class="waffle__cifra" aria-hidden="true">{numero(totale)}</p>
+  <div class="waffle__griglia">
+    {blocchi.map((righe, b) => (
+      <svg
+        viewBox={`0 0 ${PER_RIGA * CELLA} ${RIGHE_PER_BLOCCO * CELLA}`}
+        {...(b === 0
+          ? { role: 'img', 'aria-labelledby': 'waffle-titolo waffle-desc' }
+          : { 'aria-hidden': 'true' })}
+      >
+        {b === 0 && <title id="waffle-titolo">{titolo}</title>}
+        {b === 0 && <desc id="waffle-desc">{descrizione}</desc>}
+        {righe.map((riga) => (
+          <g class="riga" style={`--i: ${riga.indice}`}>
+            {riga.celle.map((c) => (
+              <rect class={c.donna ? 'd' : 'u'} x={c.x} y={c.y} width={LATO} height={LATO} />
+            ))}
+          </g>
+        ))}
+      </svg>
+    ))}
+  </div>
+  <p class="waffle__lettura">Un quadratino è un pacco consegnato. Ogni blocco è fatto di cento quadratini.</p>
+  <ul class="waffle__legenda" aria-label="Legenda">
+    <li><span class="campione campione--u" aria-hidden="true"></span> Petrolio: pacchi consegnati a uomini ({numero(uomini)})</li>
+    <li><span class="campione campione--d" aria-hidden="true"></span> Sabbia: pacchi consegnati a donne ({numero(donne)})</li>
+  </ul>
+  <TabellaDati
+    caption={`Pacchi vestiario consegnati nel ${anno}`}
+    colonne={['Destinatari', 'Pacchi']}
+    righe={[
+      ['Uomini', uomini],
+      ['Donne', donne],
+      ['Totale', totale],
+    ]}
+  />
+</div>
+
+<script>
+  for (const w of document.querySelectorAll<HTMLElement>('[data-waffle]')) {
+    if (!('IntersectionObserver' in window)) continue;
+    w.classList.add('js');
+    const oss = new IntersectionObserver(
+      (voci) => {
+        if (!voci.some((v) => v.isIntersecting)) return;
+        w.classList.add('waffle--attivo');
+        oss.disconnect();
+      },
+      { threshold: 0.2 },
+    );
+    oss.observe(w);
+  }
+</script>
+
+<style>
+  .waffle__cifra {
+    font-family: var(--font-titoli);
+    font-size: var(--cifra);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: var(--spazio-3);
+  }
+  .waffle__griglia {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spazio-2);
+  }
+  @media (min-width: 560px) {
+    .waffle__griglia { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+  @media (min-width: 900px) {
+    .waffle__griglia { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--spazio-3); }
+  }
+  .waffle__griglia svg { width: 100%; height: auto; overflow: visible; }
+
+  rect {
+    stroke: var(--dato-bordo);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  .u { fill: var(--dato-1); }
+  .d { fill: var(--dato-2); }
+
+  .waffle__lettura { margin-top: var(--spazio-3); }
+  .waffle__legenda {
+    margin-top: var(--spazio-2);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spazio-1) var(--spazio-3);
+  }
+  .waffle__legenda li { display: flex; align-items: center; gap: .5em; }
+  .campione {
+    display: inline-block;
+    width: .9em;
+    height: .9em;
+    flex: none;
+    border: 1px solid var(--dato-bordo);
+  }
+  .campione--u { background: var(--dato-1); }
+  .campione--d { background: var(--dato-2); }
+
+  /* L'unica animazione del sito (spec §2.7): riga per riga, sotto 1,2 s in totale. */
+  .waffle.js:not(.waffle--attivo) .riga { opacity: 0; }
+  .waffle--attivo .riga {
+    animation: comparsa .25s both;
+    animation-delay: calc(var(--i) * 8ms);
+  }
+  @keyframes comparsa {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .waffle .riga { opacity: 1; animation: none; }
+  }
+</style>

@@ -1,0 +1,93 @@
+---
+/**
+ * Anteprima numeri (spec §4.4): fascia --superficie-scura, tre cifre soltanto, lette da
+ * src/content/numeri/<anno>.json (mai scritte a mano): persone incontrate, pacchi vestiario,
+ * notti di ospitalità. Nessun contatore animato. Link alla pagina dei numeri.
+ */
+import { getEntry } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import Bottone from './ui/Bottone.astro';
+import { numero } from '../lib/formato';
+
+interface Props {
+  anno?: string;
+}
+const { anno = '2024' } = Astro.props;
+
+const voce = await getEntry('numeri', anno);
+if (!voce) throw new Error(`Numeri per l'anno ${anno} non trovati in src/content/numeri`);
+const dati = voce.data;
+
+type Voce = CollectionEntry<'numeri'>['data']['sezioni'][number]['voci'][number];
+
+/** Cerca una voce per id in tutte le sezioni; fallisce la build se il dato manca (non si inventa). */
+function trovaVoce(d: typeof dati, id: string): Voce {
+  for (const sezione of d.sezioni) {
+    const v = sezione.voci.find((x) => x.id === id);
+    if (v) return v;
+  }
+  throw new Error(`Voce "${id}" assente in src/content/numeri/${anno}.json`);
+}
+
+const cifre = ['persone-incontrate', 'pacchi-vestiario', 'notti-ospitalita'].map((id) => trovaVoce(dati, id));
+const fonti = [...new Set(cifre.map((c) => c.fonte))];
+---
+
+<section class="numeri fascia fascia--scura" aria-labelledby="numeri-titolo">
+  <div class="contenitore">
+    <h2 id="numeri-titolo">I numeri del {dati.anno}</h2>
+    <ul class="numeri__cifre">
+      {cifre.map((c) => (
+        <li class="numeri__voce">
+          <span class="numeri__cifra">{numero(c.valore)}</span>
+          <span class="numeri__etichetta">{c.etichetta}</span>
+        </li>
+      ))}
+    </ul>
+    <div class="numeri__coda">
+      <Bottone href={`/numeri/${dati.anno}`} variante="secondario">Tutti i numeri del {dati.anno}</Bottone>
+      <p class="piccolo debole">Fonte: {fonti.join(', ')}.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .numeri h2 {
+    margin-bottom: var(--spazio-4);
+  }
+  .numeri__cifre {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spazio-4) var(--spazio-3);
+  }
+  @media (min-width: 600px) {
+    .numeri__cifre { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  .numeri__voce {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spazio-1);
+    padding-top: var(--spazio-2);
+    border-top: var(--spessore-bordo) solid var(--superficie-alt);
+  }
+  .numeri__cifra {
+    font-family: var(--font-titoli);
+    font-size: var(--cifra);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    color: var(--superficie);
+  }
+  .numeri__etichetta {
+    font-size: 1.1em;
+    color: var(--superficie);
+  }
+  .numeri__coda {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spazio-2) var(--spazio-3);
+    margin-top: var(--spazio-5);
+  }
+</style>

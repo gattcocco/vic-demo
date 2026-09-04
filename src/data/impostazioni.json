@@ -1,0 +1,36 @@
+{
+  "nome": "VIC",
+  "nomeEsteso": "Volontari In Carcere OdV",
+  "slogan": "Volontariato nei quattro istituti di Rebibbia e nella Casa del VIC",
+  "codiceFiscale": "97112380585",
+  "iban": "IT77E0306909606100000114867",
+  "banca": "Banca Intesa Sanpaolo",
+  "intestatario": "Volontari In Carcere OdV",
+  "paypal": "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=JFZMSHC5GN5R6",
+  "telefoni": [
+    {
+      "etichetta": "Segreteria",
+      "numero": "+39 06 4062508"
+    },
+    {
+      "etichetta": "Segreteria (cellulare)",
+      "numero": "+39 333 3967629"
+    }
+  ],
+  "email": "info@vic-odv.org",
+  "indirizzo": {
+    "via": "",
+    "cap": "",
+    "citta": "Roma"
+  },
+  "orari": "",
+  "social": {
+    "facebook": "https://www.facebook.com/SegreteriaVic/",
+    "instagram": "https://www.instagram.com/vic_segreteria/",
+    "youtube": "https://www.youtube.com/channel/UCbn5MCU_1Vh0UtLfH5UgVcA",
+    "linkedin": ""
+  },
+  "sitoAttuale": "https://www.vic-odv.org",
+  "runts": "Organizzazione di volontariato iscritta al RUNTS (Repertorio n. 98825 del 01.02.2023)",
+  "urlVolontari": "https://www.vic-odv.org/index.php/mega/attivita-esterne/formazione-nuovi-volontari"
+}

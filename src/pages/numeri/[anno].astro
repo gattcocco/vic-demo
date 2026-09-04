@@ -1,0 +1,336 @@
+---
+/**
+ * I numeri del VIC, un anno per pagina: /numeri/[anno] (spec §5).
+ * Tutte le cifre vengono da src/content/numeri/<anno>.json, con definizione e fonte di ogni voce.
+ * Il selettore in cima mostra gli anni dal 2022 al più recente: gli anni assenti sono
+ * disabilitati, così si vede che l'archivio si accumula (§5.4).
+ */
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import WaffleVestiario from '../../components/viz/WaffleVestiario.astro';
+import SettimanaTipo from '../../components/viz/SettimanaTipo.astro';
+import NottiOspitalita from '../../components/viz/NottiOspitalita.astro';
+import ContestoRebibbia from '../../components/viz/ContestoRebibbia.astro';
+import og from '../../assets/og/numeri-2024.png';
+import { href, assoluto } from '../../lib/url';
+import { numero } from '../../lib/formato';
+
+export async function getStaticPaths() {
+  const anni = await getCollection('numeri');
+  return anni.map((entry) => ({ params: { anno: String(entry.data.anno) }, props: { entry, anni } }));
+}
+
+const { entry, anni } = Astro.props;
+const dati = entry.data;
+const anno = dati.anno;
+
+// Selettore anno: dal 2022 all'anno più recente presente in archivio.
+const anniPresenti = new Set(anni.map((e) => e.data.anno));
+const PRIMO_ANNO = 2022;
+const ultimoAnno = Math.max(PRIMO_ANNO, ...anniPresenti);
+const selettore = Array.from({ length: ultimoAnno - PRIMO_ANNO + 1 }, (_, i) => PRIMO_ANNO + i);
+
+const dataItaliana = (iso: string) =>
+  new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(iso));
+
+// Accesso alle voci per id: le cifre dei grafici vengono SOLO dal JSON.
+const tutteLeVoci = dati.sezioni.flatMap((s) => s.voci);
+const voce = (id: string) => {
+  const v = tutteLeVoci.find((x) => x.id === id);
+  if (!v) throw new Error(`Voce "${id}" assente in numeri/${anno}.json`);
+  return v;
+};
+const dettaglio = (id: string, sub: string) => {
+  const d = voce(id).dettaglio?.find((x) => x.id === sub);
+  if (!d) throw new Error(`Dettaglio "${sub}" assente nella voce "${id}" di numeri/${anno}.json`);
+  return d;
+};
+
+const pacchi = voce('pacchi-vestiario');
+const notti = voce('notti-ospitalita');
+const ospitate = voce('persone-ospitate');
+const incontrate = voce('persone-incontrate');
+const contesto = dati.contesto.find((c) => c.id === 'detenuti-rebibbia') ?? dati.contesto[0];
+
+const settimana = [
+  { etichetta: 'colloqui con persone detenute', annuale: voce('colloqui-detenuti').valore },
+  { etichetta: 'colloqui con familiari', annuale: voce('colloqui-familiari').valore },
+  { etichetta: 'pacchi vestiario consegnati', annuale: pacchi.valore },
+  { etichetta: 'notti nella Casa del VIC', annuale: notti.valore },
+  { etichetta: 'persone incontrate', annuale: incontrate.valore },
+];
+
+const urlCasaDelVic = 'https://www.vic-odv.org/index.php/mega/altre-attivita/fundraising/sostieni-la-casa-del-vic';
+
+const titolo = `I numeri del VIC nel ${anno} — colloqui, pacchi vestiario, notti di ospitalità`;
+const descrizione = `Cosa hanno fatto i volontari del VIC nei quattro istituti di Rebibbia e nella Casa del VIC nel ${anno}: ${numero(voce('colloqui-detenuti').valore)} colloqui con persone detenute, ${numero(pacchi.valore)} pacchi vestiario, ${numero(notti.valore)} notti di ospitalità. Ogni cifra con la sua definizione e la sua fonte.`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Dataset',
+  name: `I numeri del VIC nel ${anno}`,
+  description: descrizione,
+  url: assoluto(`/numeri/${anno}`),
+  creator: { '@type': 'Organization', name: 'VIC — Volontari In Carcere OdV' },
+  temporalCoverage: String(anno),
+  dateModified: dati.aggiornato,
+  spatialCoverage: 'Rebibbia, Roma',
+  variableMeasured: tutteLeVoci.map((v) => ({ '@type': 'PropertyValue', name: v.etichetta, value: v.valore })),
+};
+
+const sezione = (id: string) => dati.sezioni.find((s) => s.id === id);
+const ascolto = sezione('ascolto');
+const accoglienza = sezione('accoglienza');
+const aiuti = sezione('aiuti');
+const sensibilizzazione = sezione('sensibilizzazione');
+const altre = dati.sezioni.filter((s) => !['ascolto', 'accoglienza', 'aiuti', 'sensibilizzazione'].includes(s.id));
+---
+
+<Base
+  titolo={titolo}
+  descrizione={descrizione}
+  ogImage={og}
+  ogAlt={`I numeri del VIC nel ${anno}: colloqui, pacchi vestiario e notti di ospitalità a Rebibbia`}
+  jsonLd={jsonLd}
+>
+  <header class="fascia intestazione">
+    <div class="contenitore">
+      <h1 class="display">I numeri del {anno}</h1>
+      <p class="intestazione__sotto">
+        Cosa hanno fatto i volontari del VIC nei quattro istituti di Rebibbia e nella Casa del VIC. Ogni cifra porta con sé
+        la sua definizione e la sua fonte.
+      </p>
+      <p class="piccolo debole">Aggiornato il <time datetime={dati.aggiornato}>{dataItaliana(dati.aggiornato)}</time></p>
+      <nav class="anni" aria-label="Anni">
+        <ul class="anni__lista">
+          {selettore.map((a) =>
+            anniPresenti.has(a) ? (
+              <li>
+                <a href={href(`/numeri/${a}`)} aria-current={a === anno ? 'page' : undefined}>{a}</a>
+              </li>
+            ) : (
+              <li>
+                <span class="disabilitato" aria-disabled="true">{a}<span class="sr-only"> non disponibile</span></span>
+              </li>
+            ),
+          )}
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  {ascolto && (
+    <section class="fascia fascia--scura" aria-labelledby="sez-ascolto">
+      <div class="contenitore">
+        <h2 id="sez-ascolto">{ascolto.titolo}</h2>
+        <ul class="voci">
+          {ascolto.voci.map((v) => (
+            <li class="voce">
+              <span class="voce__cifra">{numero(v.valore)}</span>
+              <span class="voce__etichetta">{v.etichetta}</span>
+              <p class="piccolo debole voce__definizione">{v.definizione} Fonte: {v.fonte}.</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <section class="fascia" aria-labelledby="sez-settimana">
+    <div class="contenitore">
+      <h2 id="sez-settimana">La settimana tipo</h2>
+      <figure class="grafico">
+        <SettimanaTipo anno={anno} voci={settimana} />
+        <figcaption class="piccolo debole">Medie settimanali calcolate dai totali del {anno}.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  {accoglienza && (
+    <section class="fascia fascia--alt" aria-labelledby="sez-accoglienza">
+      <div class="contenitore">
+        <h2 id="sez-accoglienza">{accoglienza.titolo}</h2>
+        <ul class="voci">
+          {accoglienza.voci.map((v) => (
+            <li class="voce">
+              <span class="voce__cifra">{numero(v.valore)}</span>
+              <span class="voce__etichetta">{v.etichetta}</span>
+              {v.dettaglio && (
+                <span class="voce__dettaglio">
+                  Di cui: {v.dettaglio.map((d) => `${numero(d.valore)} ${d.etichetta.toLowerCase()}`).join(', ')}.
+                </span>
+              )}
+              <p class="piccolo debole voce__definizione">{v.definizione} Fonte: {v.fonte}.</p>
+            </li>
+          ))}
+        </ul>
+        <figure class="grafico grafico--pannello">
+          <NottiOspitalita
+            anno={anno}
+            notti={notti.valore}
+            persone={ospitate.valore}
+            categorie={(ospitate.dettaglio ?? []).map((d) => ({ etichetta: d.etichetta, valore: d.valore }))}
+            urlCampagna={urlCasaDelVic}
+          />
+          <figcaption class="piccolo debole">Le notti di ospitalità nella Casa del VIC nel {anno}. Fonte: {notti.fonte}.</figcaption>
+        </figure>
+      </div>
+    </section>
+  )}
+
+  {aiuti && (
+    <section class="fascia" aria-labelledby="sez-aiuti">
+      <div class="contenitore">
+        <h2 id="sez-aiuti">{aiuti.titolo}</h2>
+        <ul class="voci">
+          {aiuti.voci.map((v) => (
+            <li class="voce">
+              <span class="voce__cifra">{numero(v.valore)}</span>
+              <span class="voce__etichetta">{v.etichetta}</span>
+              {v.dettaglio && (
+                <span class="voce__dettaglio">
+                  Di cui: {v.dettaglio.map((d) => `${numero(d.valore)} ${d.etichetta.toLowerCase()}`).join(', ')}.
+                </span>
+              )}
+              <p class="piccolo debole voce__definizione">{v.definizione} Fonte: {v.fonte}.</p>
+            </li>
+          ))}
+        </ul>
+        <figure class="grafico">
+          <WaffleVestiario
+            totale={pacchi.valore}
+            uomini={dettaglio('pacchi-vestiario', 'uomini').valore}
+            donne={dettaglio('pacchi-vestiario', 'donne').valore}
+            anno={anno}
+          />
+          <figcaption class="piccolo debole">I pacchi vestiario consegnati nel {anno}, uno per quadratino. Fonte: {pacchi.fonte}.</figcaption>
+        </figure>
+      </div>
+    </section>
+  )}
+
+  {sensibilizzazione && (
+    <section class="fascia fascia--scura" aria-labelledby="sez-sensibilizzazione">
+      <div class="contenitore">
+        <h2 id="sez-sensibilizzazione">{sensibilizzazione.titolo}</h2>
+        <ul class="voci">
+          {sensibilizzazione.voci.map((v) => (
+            <li class="voce">
+              <span class="voce__cifra">{numero(v.valore)}</span>
+              <span class="voce__etichetta">{v.etichetta}</span>
+              <p class="piccolo debole voce__definizione">{v.definizione} Fonte: {v.fonte}.</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  {altre.map((s) => (
+    <section class="fascia" aria-labelledby={`sez-${s.id}`}>
+      <div class="contenitore">
+        <h2 id={`sez-${s.id}`}>{s.titolo}</h2>
+        <ul class="voci">
+          {s.voci.map((v) => (
+            <li class="voce">
+              <span class="voce__cifra">{numero(v.valore)}</span>
+              <span class="voce__etichetta">{v.etichetta}</span>
+              <p class="piccolo debole voce__definizione">{v.definizione} Fonte: {v.fonte}.</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  ))}
+
+  {contesto && (
+    <section class="fascia" aria-labelledby="sez-contesto">
+      <div class="contenitore">
+        <h2 id="sez-contesto">Il contesto</h2>
+        <p class="sez-intro">
+          Quante sono le persone che il VIC incontra in un anno, rispetto a quante ne vivono a Rebibbia in un giorno.
+        </p>
+        <figure class="grafico">
+          <ContestoRebibbia anno={anno} incontrate={incontrate.valore} contesto={contesto} />
+          <figcaption class="piccolo debole">
+            Persone incontrate dal VIC nel {anno} (fonte: {incontrate.fonte}) e {contesto.etichetta.toLowerCase()}
+            {contesto.valore !== null ? ` (fonte: Ministero della Giustizia, ${dataItaliana(contesto.rilevazione)})` : ' (dato in attesa di fonte ufficiale)'}.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+  )}
+</Base>
+
+<style>
+  .intestazione { padding-bottom: var(--spazio-4); }
+  .intestazione__sotto {
+    margin-top: var(--spazio-3);
+    font-size: 1.15em;
+    max-width: var(--riga-max);
+  }
+  .intestazione .piccolo { margin-top: var(--spazio-2); }
+
+  /* Selettore anno: link per gli anni presenti, voce disabilitata per quelli assenti. */
+  .anni { margin-top: var(--spazio-3); }
+  .anni__lista { display: flex; flex-wrap: wrap; gap: var(--spazio-1); }
+  .anni a,
+  .anni .disabilitato {
+    display: inline-block;
+    min-width: 4.5rem;
+    min-height: 44px;
+    padding: .45em .9em;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: left;
+    border: var(--spessore-bordo) solid var(--azione);
+  }
+  .anni a { color: var(--azione); text-decoration: none; }
+  .anni a:hover { background: var(--azione); color: var(--azione-testo); }
+  .anni a[aria-current='page'] {
+    background: var(--azione);
+    color: var(--azione-testo);
+    text-decoration: underline;
+    text-underline-offset: .2em;
+  }
+  .anni .disabilitato {
+    color: var(--testo-debole);
+    border-color: var(--bordo);
+    border-style: dashed;
+  }
+
+  h2 { margin-bottom: var(--spazio-3); }
+  .sez-intro { margin-bottom: var(--spazio-3); }
+
+  /* Griglia delle voci: cifra grande, etichetta, definizione con fonte. */
+  .voci {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spazio-4) var(--spazio-3);
+  }
+  @media (min-width: 600px) { .voci { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (min-width: 960px) { .voci { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .voce { display: flex; flex-direction: column; gap: .25em; }
+  .voce__cifra {
+    font-family: var(--font-titoli);
+    font-size: var(--cifra);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  .voce__etichetta { font-weight: 600; font-size: 1.1em; }
+  .voce__dettaglio { font-size: .95em; }
+  .voce__definizione { margin-top: .35em; }
+
+  .grafico { margin-top: var(--spazio-5); }
+  .grafico figcaption { margin-top: var(--spazio-2); }
+  /* Sulla fascia sabbia il grafico sta su un pannello chiaro, perché la sabbia dei dati non
+     si distingue dalla sabbia del fondo (spec §2.4). Come i pannelli dentro l'intelaiatura. */
+  .grafico--pannello {
+    background: var(--superficie);
+    padding: var(--spazio-3);
+  }
+  @media (min-width: 768px) { .grafico--pannello { padding: var(--spazio-4); } }
+  .grafico--pannello figcaption { margin-top: var(--spazio-3); }
+</style>

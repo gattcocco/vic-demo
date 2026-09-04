@@ -1,0 +1,77 @@
+---
+/**
+ * Elenco delle notizie: tutte quelle non in bozza, dalla più recente.
+ * Pagina minima: serve a far comparire la notizia che durante la presentazione
+ * viene aggiunta dal vivo dal pannello /admin/.
+ */
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { href } from '../../lib/url';
+import og from '../../assets/og/home.png';
+
+const notizie = (await getCollection('post', ({ data }) => !data.bozza)).sort(
+  (a, b) => b.data.data.valueOf() - a.data.data.valueOf(),
+);
+
+// Le date arrivano da "AAAA-MM-GG" (mezzanotte UTC): si formattano in UTC per non slittare di un giorno.
+const dataLunga = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const dataIso = (d: Date) => d.toISOString().slice(0, 10);
+---
+
+<Base
+  titolo="Notizie — VIC Volontari In Carcere OdV"
+  descrizione="Le notizie del VIC: campagne di raccolta, corsi per nuovi volontari, incontri e novità dai quattro istituti di Rebibbia e dalla Casa del VIC."
+  ogImage={og}
+  ogAlt="Ogni giorno entriamo nei quattro istituti di Rebibbia. VIC — Volontari In Carcere OdV, Roma"
+>
+  <section class="fascia">
+    <div class="contenitore griglia-12">
+      <div class="lettura pila">
+        <h1>Notizie</h1>
+        <p>Campagne, corsi per nuovi volontari, incontri: le novità dal VIC, dalla più recente.</p>
+
+        {notizie.length === 0 ? (
+          <p class="debole">Non ci sono ancora notizie pubblicate.</p>
+        ) : (
+          <ul class="elenco-notizie">
+            {notizie.map((n) => (
+              <li class="notizia">
+                <time class="notizia__data debole" datetime={dataIso(n.data.data)}>{dataLunga.format(n.data.data)}</time>
+                <h2 class="notizia__titolo">
+                  <a href={href('/notizie/' + n.id)}>{n.data.titolo}</a>
+                </h2>
+                <p>{n.data.sommario}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .elenco-notizie {
+    display: flex;
+    flex-direction: column;
+  }
+  .notizia {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spazio-1);
+    padding-block: var(--spazio-3);
+    border-top: 1px solid var(--bordo);
+  }
+  .notizia:last-child {
+    border-bottom: 1px solid var(--bordo);
+  }
+  .notizia__titolo {
+    font-size: var(--titolo-3);
+  }
+  .notizia__titolo a {
+    color: var(--testo);
+  }
+  .notizia__titolo a:hover {
+    color: var(--azione);
+  }
+</style>

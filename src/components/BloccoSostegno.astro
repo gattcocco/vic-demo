@@ -1,0 +1,87 @@
+---
+/**
+ * Sostienici (spec §4.5): fascia --superficie-alt con le tre modalità di sostegno.
+ * 5x1000 con il codice fiscale in evidenza e copiabile, bonifico con IBAN copiabile, PayPal.
+ * Dati da impostazioni.json (collezione `impostazioni`): nessun valore scritto nel template.
+ * Se il link PayPal non è ancora nelle impostazioni compare un segnaposto dichiarato.
+ * Su fascia sabbia gli elementi interattivi usano --testo (mai --azione a corpo testo, spec §2.3):
+ * CopiaIban e Bottone si adattano da soli tramite :global(.fascia--alt).
+ */
+import { getEntry } from 'astro:content';
+import CopiaIban from './ui/CopiaIban.astro';
+import Bottone from './ui/Bottone.astro';
+
+const impostazioni = (await getEntry('impostazioni', 'impostazioni'))!.data;
+const haPaypal = impostazioni.paypal.trim() !== '';
+---
+
+<section class="sostegno fascia fascia--alt" id="sostienici" aria-labelledby="sostegno-titolo">
+  <div class="contenitore">
+    <h2 id="sostegno-titolo">Sostieni il VIC</h2>
+    <p class="sostegno__intro">
+      Tre modi per contribuire alle attività dell'associazione. Le donazioni al VIC, organizzazione di
+      volontariato iscritta al RUNTS, sono detraibili o deducibili nella dichiarazione dei redditi.
+    </p>
+
+    <ul class="sostegno__modi">
+      <li class="sostegno__modo pila">
+        <h3>Dona il tuo 5x1000</h3>
+        <p>
+          Non ti costa nulla: nella dichiarazione dei redditi firma nel riquadro «Sostegno del volontariato»
+          e scrivi il codice fiscale del VIC.
+        </p>
+        <CopiaIban id="cf-home" etichetta="Codice fiscale" valore={impostazioni.codiceFiscale} />
+      </li>
+
+      <li class="sostegno__modo pila">
+        <h3>Bonifico bancario</h3>
+        <p>
+          Intestato a <strong>{impostazioni.intestatario}</strong>, {impostazioni.banca}.
+          Nella causale scrivi «donazione» e, se vuoi, la campagna che intendi sostenere.
+        </p>
+        <CopiaIban id="iban-home" etichetta="IBAN" valore={impostazioni.iban} spaziato />
+      </li>
+
+      <li class="sostegno__modo pila">
+        <h3>PayPal</h3>
+        <p>Con carta di credito o conto PayPal, anche dal telefono, in pochi passaggi.</p>
+        {haPaypal ? (
+          <p><Bottone href={impostazioni.paypal}>Dona con PayPal</Bottone></p>
+        ) : (
+          <p class="sostegno__segnaposto">
+            <strong>Segnaposto:</strong> il link al pulsante PayPal dell'associazione va inserito nelle
+            impostazioni del sito; in questa demo il pulsante non è ancora attivo.
+          </p>
+        )}
+      </li>
+    </ul>
+  </div>
+</section>
+
+<style>
+  .sostegno h2 {
+    margin-bottom: var(--spazio-2);
+  }
+  .sostegno__intro {
+    margin-bottom: var(--spazio-4);
+  }
+  .sostegno__modi {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spazio-4) var(--spazio-3);
+  }
+  @media (min-width: 768px) {
+    .sostegno__modi { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  .sostegno__modo {
+    padding-top: var(--spazio-2);
+    border-top: var(--spessore-bordo) solid var(--testo);
+  }
+  .sostegno__modo > * + * {
+    margin-top: var(--spazio-2);
+  }
+  .sostegno__segnaposto {
+    padding: var(--spazio-2);
+    border: var(--spessore-bordo) dashed var(--testo);
+  }
+</style>

@@ -1,0 +1,21 @@
+{
+  "name": "vic-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Demo pubblica (3 pagine) del rifacimento del sito di VIC — Volontari In Carcere OdV",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.0.0",
+    "astro": "^5.0.0"
+  },
+  "devDependencies": {
+    "@fontsource-variable/source-sans-3": "^5.0.0",
+    "@fontsource-variable/source-serif-4": "^5.0.0"
+  }
+}

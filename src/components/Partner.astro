@@ -1,0 +1,60 @@
+---
+/**
+ * Partner (spec §4.6). I loghi non sono nel repo: i nomi sono resi come wordmark testuali
+ * in --testo-debole che passano a --testo in hover. Nomi e URL in src/data/partner.json.
+ * Chi ha un URL è un link esterno (target/rel), chi non ce l'ha è uno <span>:
+ * i link si distinguono dalla sottolineatura, non dal solo colore.
+ */
+import partner from '../data/partner.json';
+---
+
+<section class="partner fascia" aria-labelledby="partner-titolo">
+  <div class="contenitore">
+    <h2 id="partner-titolo">Con chi lavoriamo</h2>
+    <!-- Qui vanno i loghi dei partner in scala di grigi, a colori in hover, forniti dal VIC.
+         Finché mancano, i nomi sono resi come wordmark testuali. -->
+    <ul class="partner__lista">
+      {partner.map((p) => (
+        <li class="partner__voce">
+          {p.url ? (
+            <a class="partner__nome" href={p.url} target="_blank" rel="noopener">{p.nome}</a>
+          ) : (
+            <span class="partner__nome">{p.nome}</span>
+          )}
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .partner {
+    border-top: var(--spessore-bordo) solid var(--superficie-scura);
+  }
+  .partner h2 {
+    margin-bottom: var(--spazio-3);
+  }
+  .partner__lista {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spazio-2) var(--spazio-4);
+  }
+  .partner__nome {
+    display: inline-block;
+    padding-block: .25em;
+    font-family: var(--font-titoli);
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--testo-debole);
+  }
+  a.partner__nome {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: .2em;
+  }
+  a.partner__nome:hover {
+    color: var(--testo);
+    text-decoration-thickness: 2px;
+  }
+</style>

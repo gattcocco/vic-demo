@@ -1,0 +1,120 @@
+{
+  "anno": 2024,
+  "aggiornato": "2026-09-01",
+  "sezioni": [
+    {
+      "id": "ascolto",
+      "titolo": "Ascolto",
+      "voci": [
+        {
+          "id": "volontari-operativi",
+          "valore": 48,
+          "etichetta": "Volontari operativi",
+          "definizione": "Volontari che nel corso dell'anno hanno svolto con continuità almeno un turno settimanale in uno dei quattro istituti di Rebibbia o nella Casa del VIC. (Definizione da confermare con il VIC.)",
+          "fonte": "Relazione annuale VIC 2024"
+        },
+        {
+          "id": "colloqui-detenuti",
+          "valore": 7000,
+          "etichetta": "Colloqui con persone detenute",
+          "definizione": "Incontri individuali svolti dai volontari all'interno degli istituti, contati per singolo colloquio. (Definizione da confermare con il VIC.)",
+          "fonte": "Relazione annuale VIC 2024"
+        },
+        {
+          "id": "persone-incontrate",
+          "valore": 6000,
+          "etichetta": "Persone incontrate",
+          "definizione": "Persone detenute distinte incontrate almeno una volta nell'anno, contate una sola volta anche se seguite in più colloqui. (Definizione da confermare con il VIC.)",
+          "fonte": "Relazione annuale VIC 2024"
+        },
+        {
+          "id": "colloqui-familiari",
+          "valore": 1500,
+          "etichetta": "Colloqui con familiari",
+          "definizione": "Colloqui con familiari di persone detenute, svolti nei locali del VIC o per telefono. (Definizione da confermare con il VIC.)",
+          "fonte": "Relazione annuale VIC 2024"
+        },
+        {
+          "id": "persone-seguite",
+          "valore": 1340,
+          "etichetta": "Persone seguite in modo continuativo",
+          "definizione": "Persone detenute incontrate in più colloqui nel corso dell'anno, con un percorso di accompagnamento seguito dallo stesso volontario. (Definizione da confermare con il VIC.)",
+          "fonte": "Relazione annuale VIC 2024"
+        }
+      ]
+    },
+    {
+      "id": "accoglienza",
+      "titolo": "Accoglienza",
+      "voci": [
+        {
+          "id": "persone-ospitate",
+          "valore": 250,
+          "etichetta": "Persone ospitate nella Casa del VIC",
+          "definizione": "Persone che hanno dormito almeno una notte nella Casa del VIC: detenute in permesso premio, familiari in visita, persone libere in difficoltà. (Definizione da confermare con il VIC.)",
+          "fonte": "Relazione annuale VIC 2024",
+          "dettaglio": [
+            { "id": "detenute", "etichetta": "Persone detenute in permesso", "valore": 180 },
+            { "id": "familiari", "etichetta": "Familiari", "valore": 65 },
+            { "id": "libere", "etichetta": "Persone libere", "valore": 5 }
+          ]
+        },
+        {
+          "id": "notti-ospitalita",
+          "valore": 2021,
+          "etichetta": "Notti di ospitalità",
+          "definizione": "Somma delle notti trascorse nella Casa del VIC da tutte le persone ospitate nell'anno. (Definizione da confermare con il VIC.)",
+          "fonte": "Relazione annuale VIC 2024"
+        }
+      ]
+    },
+    {
+      "id": "aiuti",
+      "titolo": "Aiuti",
+      "voci": [
+        {
+          "id": "pacchi-vestiario",
+          "valore": 1082,
+          "etichetta": "Pacchi vestiario consegnati",
+          "definizione": "Pacchi di vestiario e prodotti per l'igiene consegnati a persone detenute che non hanno nessuno che glieli porti. Un pacco per persona per consegna. (Definizione da confermare con il VIC.)",
+          "fonte": "Relazione annuale VIC 2024",
+          "dettaglio": [
+            { "id": "uomini", "etichetta": "A uomini", "valore": 510 },
+            { "id": "donne", "etichetta": "A donne", "valore": 572 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sensibilizzazione",
+      "titolo": "Sensibilizzazione",
+      "voci": [
+        {
+          "id": "istituti-superiori",
+          "valore": 10,
+          "etichetta": "Istituti superiori incontrati",
+          "definizione": "Scuole secondarie di secondo grado in cui i volontari hanno tenuto almeno un incontro sul carcere nell'anno scolastico. (Definizione da confermare con il VIC.)",
+          "fonte": "Relazione annuale VIC 2024"
+        },
+        {
+          "id": "parrocchie",
+          "valore": 8,
+          "etichetta": "Parrocchie coinvolte",
+          "definizione": "Parrocchie che hanno ospitato incontri di sensibilizzazione o raccolte di vestiario. (Definizione da confermare con il VIC.)",
+          "fonte": "Relazione annuale VIC 2024"
+        }
+      ]
+    }
+  ],
+  "contesto": [
+    {
+      "id": "detenuti-rebibbia",
+      "valore": 2293,
+      "etichetta": "Persone detenute nei quattro istituti di Rebibbia",
+      "fonte": "Ministero della Giustizia — Dipartimento dell'amministrazione penitenziaria, Sezione Statistica, «Detenuti italiani e stranieri presenti e capienze per istituto — aggiornamento al 31 dicembre 2024»",
+      "url": "https://www.giustizia.it/giustizia/it/mg_1_14_1.page?contentId=SST1437082",
+      "rilevazione": "2024-12-31",
+      "nota": "Somma delle persone presenti nei quattro istituti al 31 dicembre 2024: Rebibbia Nuovo Complesso «R. Cinotti» (casa circondariale) 1.548; Rebibbia Femminile «G. Stefanini» (casa circondariale femminile) 378; Rebibbia Terza Casa (casa circondariale) 83; Rebibbia Casa di Reclusione 284. Capienza regolamentare complessiva 2.059 posti. Nel conteggio del Ministero i semiliberi sono inclusi tra i presenti."
+    }
+  ]
+}

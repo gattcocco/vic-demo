@@ -1,0 +1,14 @@
+# VIC — Volontari In Carcere OdV, demo del nuovo sito.
+# Tutto indicizzabile tranne l'area riservata (Sveltia CMS).
+# Nota: sulla demo GitHub Pages il sito vive sotto /vic-demo/, quindi l'area riservata è
+# /vic-demo/admin/; sul dominio definitivo sarà /admin/. Sono elencate entrambe.
+# (Su GitHub Pages un robots.txt in una sottocartella non viene letto dai motori: qui
+# dimostra il metodo; sul dominio proprio funziona così com'è. La pagina /admin/ porta
+# comunque <meta name="robots" content="noindex">.)
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /vic-demo/admin/
+
+Sitemap: https://gattcocco.github.io/vic-demo/sitemap-index.xml

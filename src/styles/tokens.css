@@ -1,0 +1,53 @@
+/*
+  Token del sistema visivo VIC.
+  Derivati dal logo (vetrata: intelaiatura petrolio 212°, pannelli sabbia 99°).
+  Vedi docs/vic-demo-spec.md §2. Questo è l'UNICO file in cui compaiono valori esadecimali:
+  i componenti usano solo i token semantici.
+*/
+:root {
+  /* --- primitive: le due tinte del marchio --- */
+  --h-freddo: 212;   /* intelaiatura e ramo d'ulivo */
+  --h-caldo:   99;   /* pannelli e colomba */
+
+  /* --- semantici: usare SOLO questi nei componenti --- */
+  --superficie:        #ECEBE3;  /* colomba — fondo pagina */
+  --superficie-alt:    #D2C68F;  /* pannelli — fasce "sostienici" */
+  --superficie-scura:  #254E56;  /* intelaiatura — fasce dati */
+  --testo:             #012F37;  /* petrolio scurito, L .28 */
+  --testo-debole:      #174149;  /* L .35 */
+  --azione:            #00606E;  /* teal scurito, L .45 */
+  --azione-testo:      #FFFFFF;
+  --bordo:             #A9A06A;  /* sabbia scurita, L .70 — solo bordi, mai testo */
+
+  /* --- serie dati: solo due riempimenti (spec §2.4) --- */
+  --dato-1:            #254E56;
+  --dato-2:            #D2C68F;
+  --dato-bordo:        #254E56;
+
+  /* --- tipografia: candidato 1 (Source Serif 4 + Source Sans 3), in attesa della prova di stampa (§2.5) --- */
+  --font-titoli: 'Source Serif 4 Variable', 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-testo:  'Source Sans 3 Variable', 'Source Sans 3', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --corpo:       19px;
+  --interlinea:  1.65;
+  --riga-max:    68ch;
+  --display:     clamp(2.5rem, 6vw, 4.5rem);
+  --titolo-1:    clamp(2rem, 4.5vw, 3rem);
+  --titolo-2:    clamp(1.5rem, 3vw, 2rem);
+  --titolo-3:    1.25rem;
+  --cifra:       clamp(2.75rem, 7vw, 5rem);
+
+  /* --- spazi e griglia --- */
+  --spazio-1: .5rem;
+  --spazio-2: 1rem;
+  --spazio-3: 1.5rem;
+  --spazio-4: 2.5rem;
+  --spazio-5: 4rem;
+  --fascia:   clamp(3rem, 8vw, 6rem);
+  --contenitore: 72rem;
+  --gutter: clamp(1rem, 4vw, 2.5rem);
+
+  /* --- forma: il marchio è una vetrata di angoli retti --- */
+  --raggio: 0;
+  --spessore-bordo: 2px;
+  --focus: 3px solid var(--azione);
+}

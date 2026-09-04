@@ -1,0 +1,22 @@
+# Redirect 301 dai vecchi URL del sito Joomla (vic-odv.org) alla nuova struttura (spec §8).
+#
+# ATTENZIONE: GitHub Pages NON legge questo file. Il formato è quello di Cloudflare Pages
+# (e di Netlify), che era la piattaforma prevista dalla specifica: qui serve a dimostrare
+# il metodo. Quando il sito andrà sul dominio vic-odv.org, su Cloudflare Pages il file
+# funziona così com'è; su un altro hosting la stessa tabella va tradotta nella sintassi
+# del server (es. RedirectMatch di Apache o `return 301` di nginx).
+#
+# Le destinazioni non ancora costruite nella demo (5x1000, Casa del VIC, attività, chi siamo)
+# sono comunque mappate: nella demo puntano su percorsi che oggi non esistono e la regola
+# finale /index.php/* riporta alla home tutto il resto del vecchio sito.
+#
+# formato: <vecchio percorso>  <nuovo percorso>  <codice>
+
+/index.php/mega/altre-attivita/fundraising/vesti-un-detenuto-povero  /sostienici/vesti-un-detenuto-povero  301
+/index.php/mega/powerful-features/5x1000                             /sostienici/5x1000                    301
+/index.php/mega/altre-attivita/fundraising/sostieni-la-casa-del-vic  /sostienici/casa-del-vic              301
+/index.php/mega/attivita-interne/ascolto                             /attivita/ascolto                     301
+/index.php/mega/attivita-interne/accoglienza                         /attivita/accoglienza                 301
+/index.php/mega/attivita-interne/aiuto                               /attivita/aiuto                       301
+/index.php/chi-siamo                                                 /chi-siamo                            301
+/index.php/*                                                         /                                     301

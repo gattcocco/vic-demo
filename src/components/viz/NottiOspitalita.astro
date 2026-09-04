@@ -1,0 +1,164 @@
+---
+/**
+ * Le notti di ospitalità (spec §5.2): una barra orizzontale con la distribuzione delle persone
+ * ospitate nella Casa del VIC. Solo due riempimenti (--dato-1 persone detenute, --dato-2 con bordo
+ * familiari); la terza categoria è a tratteggio, mai un terzo colore (§2.4). Etichette dirette
+ * dentro la barra; il segmento piccolo ha l'etichetta sotto, con una linea di richiamo.
+ *
+ * È il dato che più si presta a essere frainteso: il testo che segue conta più del grafico.
+ *
+ *   <NottiOspitalita anno={2024} notti={2021} persone={250}
+ *     categorie={[{ etichetta: 'Persone detenute in permesso', valore: 180 }, { etichetta: 'Familiari', valore: 65 }, { etichetta: 'Persone libere', valore: 5 }]}
+ *     urlCampagna="https://…/sostieni-la-casa-del-vic" />
+ */
+import TabellaDati from './TabellaDati.astro';
+import { numero, euro } from '../../lib/formato';
+
+interface Categoria {
+  etichetta: string;
+  valore: number;
+}
+interface Props {
+  anno: number;
+  notti: number;
+  persone: number;
+  categorie: Categoria[];
+  urlCampagna: string;
+}
+const { anno, notti, persone, categorie, urlCampagna } = Astro.props;
+
+const media = Math.round(notti / persone);
+const sommaCategorie = categorie.reduce((s, c) => s + c.valore, 0);
+
+// Geometria della barra (unità del viewBox)
+const L = 400;
+const ALTEZZA = 56;
+const Y = 8;
+let x = 0;
+const segmenti = categorie.map((c, i) => {
+  const larghezza = (c.valore / sommaCategorie) * L;
+  const s = { ...c, x, larghezza, centro: x + larghezza / 2, indice: i };
+  x += larghezza;
+  return s;
+});
+const [primo, secondo, terzo] = segmenti;
+const ALTEZZA_SVG = terzo ? 130 : 80;
+
+const titolo = `Persone ospitate nella Casa del VIC nel ${anno}: ${numero(persone)}`;
+const descrizione = `Barra orizzontale divisa in ${segmenti.length} parti proporzionali: ${segmenti
+  .map((s) => `${s.etichetta.toLowerCase()} ${numero(s.valore)}`)
+  .join(', ')}. La grande maggioranza delle persone ospitate è detenuta e viene nella Casa durante un permesso premio. In tutto ${numero(notti)} notti, in media ${numero(media)} per persona.`;
+---
+
+<div class="notti">
+  <p class="notti__cifra" aria-hidden="true">{numero(notti)} <span class="notti__cifra-etichetta">notti</span></p>
+  <p class="notti__sintesi">
+    <strong>{numero(notti)} notti</strong> per <strong>{numero(persone)} persone</strong>: in media <strong>{numero(media)} notti a testa</strong>.
+  </p>
+
+  <svg
+    class="notti__grafico"
+    viewBox={`0 0 ${L} ${ALTEZZA_SVG}`}
+    role="img"
+    aria-labelledby="notti-titolo notti-desc"
+  >
+    <title id="notti-titolo">{titolo}</title>
+    <desc id="notti-desc">{descrizione}</desc>
+    <defs>
+      <pattern id="tratteggio-notti" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+        <rect class="tratteggio__fondo" width="6" height="6" />
+        <line class="tratteggio__linea" x1="0" y1="0" x2="0" y2="6" />
+      </pattern>
+    </defs>
+
+    {primo && (
+      <g>
+        <rect class="seg seg--1" x={primo.x} y={Y} width={primo.larghezza} height={ALTEZZA} />
+        <text class="etichetta etichetta--chiara" x={primo.centro} y={Y + 24} text-anchor="middle">{primo.etichetta}</text>
+        <text class="etichetta etichetta--chiara etichetta--valore" x={primo.centro} y={Y + 46} text-anchor="middle">{numero(primo.valore)}</text>
+      </g>
+    )}
+    {secondo && (
+      <g>
+        <rect class="seg seg--2" x={secondo.x} y={Y} width={secondo.larghezza} height={ALTEZZA} />
+        <text class="etichetta" x={secondo.centro} y={Y + 24} text-anchor="middle">{secondo.etichetta}</text>
+        <text class="etichetta etichetta--valore" x={secondo.centro} y={Y + 46} text-anchor="middle">{numero(secondo.valore)}</text>
+      </g>
+    )}
+    {terzo && (
+      <g>
+        <rect class="seg seg--3" x={terzo.x} y={Y} width={terzo.larghezza} height={ALTEZZA} fill="url(#tratteggio-notti)" />
+        <line class="richiamo" x1={terzo.centro} y1={Y + ALTEZZA} x2={terzo.centro} y2={Y + ALTEZZA + 34} />
+        <text class="etichetta" x={L} y={Y + ALTEZZA + 54} text-anchor="end">{terzo.etichetta} (tratteggio): {numero(terzo.valore)}</text>
+      </g>
+    )}
+  </svg>
+
+  <div class="notti__testo prosa">
+    <p>
+      <strong>Cos'è un permesso premio.</strong> È previsto dall'articolo 30-ter dell'ordinamento penitenziario: la persona
+      detenuta che ha i requisiti può uscire dall'istituto per qualche giorno, in vista del ritorno alla vita fuori. Per
+      uscire serve però un posto dove stare: la Casa del VIC ospita chi non ha una famiglia o una casa che lo accolga.
+    </p>
+    <p>
+      <strong>Come leggere le notti.</strong> Le {numero(notti)} notti sono la somma delle notti di tutte le persone ospitate
+      nell'anno, non le notti di apertura della Casa. In media fanno {numero(media)} notti a testa, ma i soggiorni sono molto
+      diversi tra loro: un permesso di pochi giorni e un periodo più lungo contano entrambi, ciascuno per le sue notti.
+    </p>
+    <p>
+      Sono lo stesso racconto visto dai due lati: nella campagna <em>Sostieni la Casa del VIC</em>, {euro(10)} coprono una
+      notte. <a href={urlCampagna} target="_blank" rel="noopener">Sostieni la Casa del VIC</a> (sito attuale).
+    </p>
+  </div>
+
+  <TabellaDati
+    caption={`Persone ospitate e notti di ospitalità nella Casa del VIC nel ${anno}`}
+    colonne={['Voce', 'Valore']}
+    righe={[
+      ...categorie.map((c) => [c.etichetta, c.valore] as (string | number)[]),
+      ['Totale persone ospitate', persone],
+      ['Notti di ospitalità', notti],
+      ['Media di notti per persona', media],
+    ]}
+  />
+</div>
+
+<style>
+  .notti__cifra {
+    font-family: var(--font-titoli);
+    font-size: var(--cifra);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .notti__cifra-etichetta {
+    font-family: var(--font-testo);
+    font-size: .4em;
+    font-weight: 600;
+  }
+  .notti__sintesi { margin-top: var(--spazio-2); }
+
+  .notti__grafico {
+    margin-top: var(--spazio-3);
+    width: 100%;
+    max-width: 40rem;
+    height: auto;
+    overflow: visible;
+  }
+  .seg { stroke: var(--dato-bordo); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .seg--1 { fill: var(--dato-1); }
+  .seg--2 { fill: var(--dato-2); }
+  .tratteggio__fondo { fill: var(--superficie); }
+  .tratteggio__linea { stroke: var(--dato-bordo); stroke-width: 2; }
+  .richiamo { stroke: var(--dato-bordo); stroke-width: 1.5; }
+  .etichetta {
+    font-family: var(--font-testo);
+    font-size: 15px;
+    font-weight: 600;
+    fill: var(--testo);
+  }
+  .etichetta--valore { font-size: 18px; font-variant-numeric: tabular-nums; }
+  .etichetta--chiara { fill: var(--superficie); }
+
+  .notti__testo { margin-top: var(--spazio-4); }
+</style>

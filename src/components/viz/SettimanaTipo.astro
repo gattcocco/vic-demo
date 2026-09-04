@@ -1,0 +1,80 @@
+---
+/**
+ * La settimana tipo (spec §5.2): i totali annuali divisi per 52 e arrotondati, presentati
+ * come scena leggibile. Nessun grafico: qui funziona meglio la tipografia. Etichettato
+ * esplicitamente come media, mai come dato rilevato.
+ *
+ *   <SettimanaTipo anno={2024} voci={[{ etichetta: 'colloqui con persone detenute', annuale: 7000 }, …]} />
+ */
+import TabellaDati from './TabellaDati.astro';
+import { numero, perSettimana } from '../../lib/formato';
+
+interface Voce {
+  /** Etichetta in minuscolo, così entra nella frase: "circa 135 colloqui con persone detenute". */
+  etichetta: string;
+  annuale: number;
+}
+interface Props {
+  anno: number;
+  voci: Voce[];
+}
+const { anno, voci } = Astro.props;
+const medie = voci.map((v) => ({ ...v, media: perSettimana(v.annuale) }));
+---
+
+<div class="settimana">
+  <p class="settimana__apertura">In una settimana media del {anno}, i volontari del VIC hanno fatto più o meno questo.</p>
+  <ul class="settimana__scena">
+    {medie.map((v) => (
+      <li>
+        <span class="settimana__cifra">{numero(v.media)}</span>
+        <span class="settimana__etichetta">{v.etichetta}</span>
+      </li>
+    ))}
+  </ul>
+  <p class="piccolo settimana__nota">
+    Valori medi: totale annuale diviso 52, arrotondato. Non sono dati rilevati settimana per settimana.
+  </p>
+  <TabellaDati
+    caption={`Totali del ${anno} e media settimanale`}
+    colonne={['Attività', 'Totale annuale', 'Media settimanale']}
+    righe={medie.map((v) => [v.etichetta.charAt(0).toUpperCase() + v.etichetta.slice(1), v.annuale, v.media])}
+  />
+</div>
+
+<style>
+  .settimana__apertura {
+    font-size: 1.15em;
+    max-width: var(--riga-max);
+  }
+  .settimana__scena {
+    margin-top: var(--spazio-4);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spazio-3) var(--spazio-4);
+  }
+  @media (min-width: 600px) {
+    .settimana__scena { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 900px) {
+    .settimana__scena { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  .settimana__scena li {
+    display: flex;
+    flex-direction: column;
+    gap: .15em;
+    padding-left: var(--spazio-2);
+    border-left: var(--spessore-bordo) solid var(--testo);
+  }
+  .settimana__cifra {
+    font-family: var(--font-titoli);
+    font-size: var(--cifra);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .settimana__etichetta { font-weight: 600; }
+  .settimana__nota { margin-top: var(--spazio-4); }
+
+  :global(.fascia--scura) .settimana__scena li { border-left-color: var(--superficie-alt); }
+</style>

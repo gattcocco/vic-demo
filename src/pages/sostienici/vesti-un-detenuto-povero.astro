@@ -1,0 +1,345 @@
+---
+/**
+ * Pagina campagna "Vesti un detenuto povero" (spec §6): dimostra il flusso di donazione.
+ * Ordine: titolo e frase → racconto → importi suggeriti → bonifico → PayPal e QR → detraibilità
+ * → due cifre dalla pagina numeri. Le cifre vengono da src/content/numeri/2024.json, i dati
+ * bancari e il codice fiscale da src/data/impostazioni.json: niente scritto a mano nel template.
+ */
+import { getEntry } from 'astro:content';
+import { getImage, Picture } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import Bottone from '../../components/ui/Bottone.astro';
+import CopiaIban from '../../components/ui/CopiaIban.astro';
+import ImportoSuggerito from '../../components/ui/ImportoSuggerito.astro';
+import { href, assoluto } from '../../lib/url';
+import { numero } from '../../lib/formato';
+import ogImage from '../../assets/og/vesti-un-detenuto-povero.png';
+
+const impostazioni = (await getEntry('impostazioni', 'impostazioni'))!.data;
+const campagna = (await getEntry('campagne', 'vesti-un-detenuto-povero'))!.data;
+const numeri = (await getEntry('numeri', '2024'))!.data;
+
+/** Legge una voce della pagina numeri; se manca, il build si ferma invece di stampare un vuoto. */
+function voce(sezione: string, id: string) {
+  const v = numeri.sezioni.find((s) => s.id === sezione)?.voci.find((x) => x.id === id);
+  if (!v) throw new Error(`Voce ${sezione}/${id} assente in numeri/${numeri.anno}.json`);
+  return v;
+}
+const pacchi = voce('aiuti', 'pacchi-vestiario');
+const persone = voce('ascolto', 'persone-incontrate');
+const dettaglioPacchi = (pacchi.dettaglio ?? [])
+  .map((d) => `${numero(d.valore)} ${d.etichetta.charAt(0).toLowerCase()}${d.etichetta.slice(1)}`)
+  .join(', ');
+
+/* Soglie della campagna: sono quelle già stampate sui volantini del VIC (spec §6).
+   Il componente ImportoSuggerito è parametrico: per la Casa del VIC basta cambiare questo array. */
+const kit = [
+  { importo: 5, titolo: 'Kit igiene', contenuto: 'sapone, shampoo, dentifricio, spazzolino' },
+  { importo: 10, titolo: 'Kit biancheria', contenuto: 'mutande, canottiere, reggiseno, asciugamani' },
+  { importo: 20, titolo: 'Kit abbigliamento', contenuto: 'tuta, felpa, scarpe da ginnastica' },
+];
+const causale = 'Vesti un detenuto povero';
+
+/* Link PayPal: prima quello in impostazioni.json (modificabile dal pannello); se vuoto, il pulsante
+   "Donate" hosted usato oggi dalla pagina attuale di questa campagna (hosted_button_id EKNNJ5DPSPP7C).
+   Il pulsante generale del sito è invece JFZMSHC5GN5R6. Da confermare con il VIC quale tenere. */
+const PAYPAL_CAMPAGNA = 'https://www.paypal.com/donate?hosted_button_id=EKNNJ5DPSPP7C';
+const paypal = impostazioni.paypal || PAYPAL_CAMPAGNA;
+
+/* Racconto: testo della pagina attuale, accorciato (spec §6.2). Il paragrafo finale con IBAN e
+   PayPal è sostituito dai blocchi strutturati qui sotto. */
+const racconto = [
+  'Ogni settimana i volontari che entrano in carcere ricevono richieste di vestiario da persone che non hanno neanche di che vestirsi, né familiari o amici che possano portare loro lo stretto necessario. Un gruppo di volontari, affiancato da persone detenute ed ex detenute che donano il loro tempo al VIC, si ritrova due giorni alla settimana a confezionare i pacchi.',
+  'Ogni settimana il VIC prepara pacchi con generi di prima necessità: mutande, calzini, t-shirt, felpe, pantaloni, pigiami, asciugamani, scarpe e ciabatte. Alcune cose ci vengono donate, altre le acquistiamo, per motivi igienici e di dignità per chi le riceve.',
+  'Anche un semplice pacco vestiario è importante per donare dignità alla persona che lo riceve. Puoi sostenere la campagna con un bonifico oppure con PayPal.',
+];
+
+const titolo = 'Vesti un detenuto povero — dona un kit di vestiario | VIC';
+const descrizione =
+  'Con 5, 10 o 20 euro doni un kit di igiene, biancheria o abbigliamento a una persona detenuta a Rebibbia che non ha nessuno che glielo porti. Bonifico o PayPal, donazione detraibile.';
+const ogAlt =
+  'Riquadro sabbia su fondo petrolio con il titolo Vesti un detenuto povero e la frase: un pacco di vestiario per chi non ha nessuno che glielo porti';
+const aggiornato = '2026-09-04';
+
+const canonical = assoluto('/sostienici/vesti-un-detenuto-povero');
+const og = await getImage({ src: ogImage, width: 1200, height: 630, format: 'jpg' });
+const ogUrl = new URL(og.src, Astro.site).toString();
+const organizzazione = {
+  '@type': 'Organization',
+  name: `${impostazioni.nome} — ${impostazioni.nomeEsteso}`,
+  url: assoluto('/'),
+};
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: campagna.titolo,
+  description: descrizione,
+  image: ogUrl,
+  inLanguage: 'it',
+  dateModified: aggiornato,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+  author: organizzazione,
+  publisher: organizzazione,
+};
+---
+
+<Base titolo={titolo} descrizione={descrizione} ogImage={ogImage} ogAlt={ogAlt} tipoOg="article" jsonLd={jsonLd}>
+  <section class="fascia">
+    <div class="contenitore">
+      <div class="griglia-12 intro">
+        <div class="lettura pila">
+          <h1>{campagna.titolo}</h1>
+          <p class="intro__frase">
+            Con la tua donazione un volontario prepara un pacco di vestiario e prodotti per l'igiene
+            e lo consegna, in uno dei quattro istituti di Rebibbia, alla persona detenuta che lo ha
+            chiesto e non ha nessuno che glielo porti.
+          </p>
+        </div>
+        <div class="intro__immagine">
+          <Picture
+            src={campagna.immagine}
+            formats={['avif']}
+            fallbackFormat="webp"
+            widths={[400, 800, 1200]}
+            sizes="(min-width: 768px) 24rem, 100vw"
+            width={600}
+            height={400}
+            alt={campagna.alt}
+            loading="eager"
+          />
+        </div>
+      </div>
+
+      <div class="blocco prosa">
+        {racconto.map((paragrafo) => <p>{paragrafo}</p>)}
+      </div>
+
+      <div class="blocco pila">
+        <h2>Scegli un kit</h2>
+        <p>
+          Sono le tre soglie stampate sui volantini del VIC: a ogni importo corrisponde un kit
+          preciso. Scegline uno, poi fai il bonifico o dona con PayPal.
+        </p>
+        <ImportoSuggerito destinazione="#bonifico" importi={kit} />
+      </div>
+    </div>
+  </section>
+
+  <section class="fascia fascia--alt" id="bonifico" aria-labelledby="titolo-bonifico">
+    <div class="contenitore">
+      <div class="griglia-12">
+        <div class="lettura pila">
+          <h2 id="titolo-bonifico">Con un bonifico</h2>
+          <p>
+            Dalla tua banca o dall'app del conto. Copia i dati qui sotto e indica la causale, così
+            sappiamo che il contributo è per i pacchi.
+          </p>
+
+          <dl class="dati">
+            <div class="dati__voce">
+              <dt>Intestatario</dt>
+              <dd>{impostazioni.intestatario}</dd>
+            </div>
+            <div class="dati__voce">
+              <dt>Banca</dt>
+              <dd>{impostazioni.banca}</dd>
+            </div>
+          </dl>
+
+          <CopiaIban id="iban" etichetta="IBAN" valore={impostazioni.iban} spaziato />
+
+          <div class="scelta">
+            <p class="scelta__etichetta">Importo scelto:</p>
+            <p class="scelta__valore" data-importo-scelto hidden></p>
+          </div>
+
+          <CopiaIban id="causale" etichetta="Causale" valore={causale} />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fascia">
+    <div class="contenitore">
+      <div class="modi">
+        <div class="pila">
+          <h2>Con PayPal</h2>
+          <p>
+            Se preferisci pagare con carta o con il tuo conto PayPal, il pulsante apre la pagina di
+            donazione del VIC. Nel messaggio scrivi la causale «{causale}».
+          </p>
+          <!-- Senza un link PayPal (impostazioni.json o costante nel frontmatter) il pulsante non compare
+               e al suo posto resta un segnaposto dichiarato. -->
+          {paypal ? (
+            <p><Bottone href={paypal}>Dona con PayPal</Bottone></p>
+          ) : (
+            <p><strong>[Segnaposto: link PayPal dell'associazione da inserire]</strong></p>
+          )}
+        </div>
+
+        <div class="pila">
+          <h2>Con il QR code</h2>
+          <p>
+            Da telefono inquadra il codice con la fotocamera: si apre la stessa pagina di donazione
+            PayPal, senza scrivere nulla.
+          </p>
+          <!--
+            Segnaposto dichiarato. Il QR stampato sui volantini del VIC è quello generato da PayPal
+            e non è decodificabile dai file del repo: l'associazione deve fornire il file ufficiale,
+            oppure lo si genera dal link PayPal una volta confermato. In demo non si disegna un QR finto.
+          -->
+          <div class="qr-segnaposto">
+            <p class="piccolo">QR code PayPal da inserire</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="blocco griglia-12">
+        <div class="lettura pila">
+          <h2>Detraibilità</h2>
+          <p>
+            La donazione è detraibile o deducibile ai sensi dell'art. 83 del Codice del Terzo
+            settore (D.Lgs. 117/2017), a condizione che sia fatta con mezzi tracciabili: bonifico,
+            carta o PayPal, non contanti. Conserva la ricevuta per la dichiarazione dei redditi.
+          </p>
+          <CopiaIban id="cf" etichetta="Codice fiscale" valore={impostazioni.codiceFiscale} />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fascia fascia--scura">
+    <div class="contenitore">
+      <div class="griglia-12">
+        <div class="lettura pila">
+          <h2>Cosa hai reso possibile</h2>
+          <p>
+            Ogni pacco parte da una donazione come la tua. Due cifre dal {numeri.anno}, dalla
+            pagina dei numeri del VIC.
+          </p>
+          <ul class="cifre">
+            <li>
+              <strong class="cifre__valore">{numero(pacchi.valore)}</strong>
+              <span class="cifre__etichetta">{pacchi.etichetta}</span>
+              {dettaglioPacchi && <span class="cifre__dettaglio debole">{dettaglioPacchi}</span>}
+            </li>
+            <li>
+              <strong class="cifre__valore">{numero(persone.valore)}</strong>
+              <span class="cifre__etichetta">{persone.etichetta}</span>
+            </li>
+          </ul>
+          <p><a href={href(`/numeri/${numeri.anno}`)}>Tutti i numeri del {numeri.anno}</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .intro {
+    align-items: start;
+  }
+  .intro__frase {
+    font-size: 1.15em;
+  }
+  .intro__immagine {
+    grid-column: span 12;
+  }
+  @media (min-width: 768px) {
+    .intro__immagine {
+      grid-column: span 4;
+    }
+  }
+  .intro__immagine img {
+    width: 100%;
+    height: auto;
+  }
+
+  .blocco {
+    margin-top: var(--spazio-5);
+  }
+
+  /* Dati del bonifico: etichetta sopra, valore in evidenza, come nel blocco di copia. */
+  .dati {
+    display: grid;
+    gap: var(--spazio-2) var(--spazio-4);
+  }
+  @media (min-width: 600px) {
+    .dati {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .dati dt {
+    color: var(--testo);
+  }
+  .dati dd {
+    font-weight: 600;
+    font-size: 1.15em;
+  }
+
+  /* "Importo scelto": lo compila ImportoSuggerito via JavaScript. Finché il valore resta nascosto,
+     resta nascosta anche l'etichetta. */
+  .scelta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 .5em;
+  }
+  .scelta:has([data-importo-scelto][hidden]) {
+    display: none;
+  }
+  .scelta > p {
+    margin: 0;
+  }
+  .scelta__valore {
+    font-weight: 600;
+    font-size: 1.15em;
+  }
+
+  .modi {
+    display: grid;
+    gap: var(--spazio-4);
+  }
+  @media (min-width: 768px) {
+    .modi {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* Riquadro squadrato in attesa del QR ufficiale: bordo nel colore del testo, nessun QR finto. */
+  .qr-segnaposto {
+    width: 200px;
+    max-width: 100%;
+    height: 200px;
+    display: flex;
+    align-items: flex-end;
+    padding: var(--spazio-2);
+    border: var(--spessore-bordo) solid var(--testo);
+    color: var(--testo-debole);
+  }
+
+  /* Le due cifre dalla pagina numeri: grandi, ferme, senza contatori. */
+  .cifre {
+    display: grid;
+    gap: var(--spazio-4);
+  }
+  @media (min-width: 600px) {
+    .cifre {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .cifre li {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spazio-1);
+  }
+  .cifre__valore {
+    font-family: var(--font-titoli);
+    font-size: var(--cifra);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .cifre__etichetta {
+    font-weight: 600;
+  }
+</style>

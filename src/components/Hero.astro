@@ -1,0 +1,52 @@
+---
+/**
+ * Hero della home (spec §4.1): fondo --superficie, nessuna immagine di sfondo.
+ * Titolo in display, un paragrafo di due frasi, due pulsanti. Il copy è quello della specifica.
+ */
+import Bottone from './ui/Bottone.astro';
+
+interface Props {
+  urlSostieni: string;
+  urlVolontari: string;
+}
+const { urlSostieni, urlVolontari } = Astro.props;
+---
+
+<section class="hero" aria-labelledby="hero-titolo">
+  <div class="contenitore">
+    <div class="hero__interno pila">
+      <h1 class="display" id="hero-titolo">Ogni giorno entriamo nei quattro istituti di Rebibbia.</h1>
+      <p class="hero__testo">
+        Il VIC accompagna le persone detenute durante la pena e nel passaggio verso il fuori:
+        colloqui, vestiario, una casa dove vivere i primi permessi.
+      </p>
+      <ul class="hero__azioni" aria-label="Azioni principali">
+        <li><Bottone href={urlSostieni}>Sostieni il VIC</Bottone></li>
+        <li><Bottone href={urlVolontari} variante="secondario">Diventa volontario</Bottone></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    background: var(--superficie);
+    padding-block: var(--fascia) var(--spazio-5);
+  }
+  .hero__interno {
+    max-width: 52rem;
+  }
+  .hero h1 {
+    max-width: 18ch;
+  }
+  .hero__testo {
+    font-size: 1.15em;
+    max-width: 48ch;
+  }
+  .hero__azioni {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spazio-2);
+    margin-top: var(--spazio-4);
+  }
+</style>

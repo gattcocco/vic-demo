@@ -1,0 +1,205 @@
+---
+/**
+ * Layout base: <head> SEO, font self-hostati, favicon derivata dal logo originale,
+ * testata con marchio e navigazione, piè di pagina con i contatti (da impostazioni.json).
+ * Ogni pagina passa titolo, descrizione e immagine Open Graph scritti a mano (spec §9).
+ */
+import '../styles/global.css';
+import { getEntry } from 'astro:content';
+import { getImage, Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import logo from '../assets/logo-vic.png';
+import { href } from '../lib/url';
+import fontTitoli from '../assets/fonts/source-serif-4-latin-wght-normal.woff2?url';
+import fontTesto from '../assets/fonts/source-sans-3-latin-wght-normal.woff2?url';
+
+interface Props {
+  titolo: string;
+  descrizione: string;
+  ogImage: ImageMetadata;
+  ogAlt: string;
+  tipoOg?: 'website' | 'article';
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+}
+
+const { titolo, descrizione, ogImage, ogAlt, tipoOg = 'website', jsonLd } = Astro.props;
+
+const impostazioni = (await getEntry('impostazioni', 'impostazioni'))!.data;
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+
+const og = await getImage({ src: ogImage, width: 1200, height: 630, format: 'jpg' });
+const ogUrl = new URL(og.src, Astro.site).toString();
+const favicon32 = await getImage({ src: logo, width: 32, height: 32, format: 'png' });
+const favicon180 = await getImage({ src: logo, width: 180, height: 180, format: 'png' });
+
+const navigazione = [
+  { etichetta: 'Le attività', url: '/#attivita' },
+  { etichetta: 'I numeri', url: '/numeri/2024' },
+  { etichetta: 'Sostienici', url: '/sostienici/vesti-un-detenuto-povero' },
+];
+
+const social = [
+  { chiave: 'facebook', etichetta: 'Facebook' },
+  { chiave: 'instagram', etichetta: 'Instagram' },
+  { chiave: 'youtube', etichetta: 'YouTube' },
+  { chiave: 'linkedin', etichetta: 'LinkedIn' },
+]
+  .map((s) => ({ ...s, url: impostazioni.social[s.chiave as keyof typeof impostazioni.social] }))
+  .filter((s) => s.url);
+
+const haIndirizzo = impostazioni.indirizzo.via !== '';
+---
+
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titolo}</title>
+    <meta name="description" content={descrizione} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/png" sizes="32x32" href={favicon32.src} />
+    <link rel="apple-touch-icon" sizes="180x180" href={favicon180.src} />
+    <link rel="preload" as="font" type="font/woff2" href={fontTitoli} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={fontTesto} crossorigin />
+    <meta property="og:type" content={tipoOg} />
+    <meta property="og:site_name" content={impostazioni.nomeEsteso} />
+    <meta property="og:locale" content="it_IT" />
+    <meta property="og:title" content={titolo} />
+    <meta property="og:description" content={descrizione} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="sitemap" href={href('/sitemap-index.xml')} />
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+  </head>
+  <body>
+    <a class="salta-al-contenuto" href="#contenuto">Salta al contenuto</a>
+
+    <header class="testata">
+      <div class="contenitore testata__interno">
+        <a class="marchio" href={href('/')} aria-label={`${impostazioni.nome} — ${impostazioni.nomeEsteso}, pagina iniziale`}>
+          <Image src={logo} alt="" width={72} height={72} densities={[1, 2]} loading="eager" />
+          <span class="marchio__testo">
+            <strong>{impostazioni.nome}</strong>
+            <span>{impostazioni.nomeEsteso}</span>
+          </span>
+        </a>
+        <nav aria-label="Principale">
+          <ul class="navigazione">
+            {navigazione.map((voce) => (
+              <li><a href={href(voce.url)}>{voce.etichetta}</a></li>
+            ))}
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="contenuto" tabindex="-1">
+      <slot />
+    </main>
+
+    <footer class="pie fascia--scura">
+      <div class="contenitore pie__griglia">
+        <div class="pila">
+          <p>
+            <strong>{impostazioni.nomeEsteso}</strong><br />
+            {impostazioni.slogan}
+          </p>
+          <p class="piccolo">
+            {impostazioni.runts}<br />
+            Codice fiscale {impostazioni.codiceFiscale}
+          </p>
+        </div>
+
+        <address class="pila">
+          {haIndirizzo && (
+            <p>
+              {impostazioni.indirizzo.via}<br />
+              {impostazioni.indirizzo.cap} {impostazioni.indirizzo.citta}
+            </p>
+          )}
+          {impostazioni.telefoni.length > 0 && (
+            <ul class="lista-contatti">
+              {impostazioni.telefoni.map((t) => (
+                <li>{t.etichetta}: <a href={`tel:${t.numero.replace(/\s+/g, '')}`}>{t.numero}</a></li>
+              ))}
+            </ul>
+          )}
+          {impostazioni.email && <p><a href={`mailto:${impostazioni.email}`}>{impostazioni.email}</a></p>}
+          {impostazioni.orari && <p class="piccolo">{impostazioni.orari}</p>}
+        </address>
+
+        <div class="pila">
+          {social.length > 0 && (
+            <ul class="lista-contatti">
+              {social.map((s) => (
+                <li><a href={s.url} target="_blank" rel="noopener">{s.etichetta}</a></li>
+              ))}
+            </ul>
+          )}
+          <p class="piccolo">
+            <a href={impostazioni.sitoAttuale} target="_blank" rel="noopener">Sito attuale del VIC</a><br />
+            <a href={href('/admin/')}>Area riservata</a>
+          </p>
+          <p class="piccolo debole">Versione dimostrativa del nuovo sito.</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style>
+  .testata {
+    background: var(--superficie);
+    border-bottom: var(--spessore-bordo) solid var(--superficie-scura);
+  }
+  .testata__interno {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spazio-2) var(--spazio-4);
+    padding-block: var(--spazio-2);
+  }
+  .marchio {
+    display: flex;
+    align-items: center;
+    gap: var(--spazio-2);
+    color: var(--testo);
+    text-decoration: none;
+  }
+  .marchio img { flex: none; width: 56px; height: 56px; }
+  @media (min-width: 768px) { .marchio img { width: 72px; height: 72px; } }
+  .marchio__testo { display: flex; flex-direction: column; line-height: 1.15; }
+  .marchio__testo strong { font-family: var(--font-titoli); font-size: 1.5rem; font-weight: 700; }
+  .marchio__testo span { font-size: .95rem; color: var(--testo-debole); }
+
+  .navigazione { display: flex; flex-wrap: wrap; gap: var(--spazio-1) var(--spazio-3); }
+  .navigazione a {
+    display: inline-block;
+    padding: .35em 0;
+    color: var(--testo);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: var(--spessore-bordo) solid transparent;
+  }
+  .navigazione a:hover { border-bottom-color: var(--azione); }
+
+  main:focus { outline: none; }
+
+  .pie { padding-block: var(--spazio-5) var(--spazio-4); }
+  .pie__griglia {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spazio-4);
+  }
+  @media (min-width: 768px) {
+    .pie__griglia { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  .pie address { font-style: normal; }
+  .lista-contatti { display: flex; flex-direction: column; gap: var(--spazio-1); }
+</style>
