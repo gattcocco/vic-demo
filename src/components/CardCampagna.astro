@@ -4,7 +4,9 @@
  * una riga di descrizione. Tutta la card è cliccabile senza onclick: lo pseudo-elemento ::after
  * del link del titolo copre l'intera card (position: relative sulla card).
  * I link esterni (sito attuale) hanno target="_blank" rel="noopener"; quelli interni passano da href().
- * Le immagini sono segnaposto dichiarati (vedi scripts/segnaposto.sh): da sostituire con fotografie del VIC.
+ * Le immagini delle campagne sono quadrate (grafiche fornite dal VIC, con il testo dentro
+ * l'immagine): la card usa aspect-ratio 1/1, così non viene ritagliata né l'intestazione in
+ * alto né la fascia di testo in basso.
  */
 import { Picture } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
@@ -29,7 +31,7 @@ const isEsterno = esterno(url);
     widths={[400, 800]}
     sizes="(min-width: 768px) 22rem, 85vw"
     width={600}
-    height={400}
+    height={600}
     formats={['avif']}
     fallbackFormat="webp"
     loading={prioritaria ? 'eager' : 'lazy'}
@@ -62,7 +64,7 @@ const isEsterno = esterno(url);
     width: 100%;
   }
   .card :global(img) {
-    aspect-ratio: 3 / 2;
+    aspect-ratio: 1 / 1;
     object-fit: cover;
   }
   .card__testo {
