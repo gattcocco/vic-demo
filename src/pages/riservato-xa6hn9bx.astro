@@ -1,0 +1,119 @@
+---
+/**
+ * Area volontari: calendari dei turni e documenti di servizio.
+ *
+ * NON è una pagina protetta: è una pagina non pubblicizzata. La riservatezza sta
+ * unicamente nel fatto che l'indirizzo non è indovinabile e non viene divulgato.
+ * Tre condizioni la tengono in piedi, e vanno rispettate tutte e tre:
+ *
+ *  1. il nome del file contiene il marcatore `riservato-` dichiarato in astro.config.mjs,
+ *     che tiene la pagina fuori dalla sitemap;
+ *  2. `noindex` chiede ai motori di non indicizzarla, e attiva anche il no-referrer;
+ *  3. nessun link a questa pagina da altre pagine del sito, né da robots.txt.
+ *
+ * Conseguenza da tenere presente: il repository è pubblico, quindi questo indirizzo
+ * è leggibile da chiunque ne sfogli il codice. Va bene finché i contenuti non
+ * riportano nomi di persone (vincolo concordato con il VIC). Se un domani servisse
+ * di più, la strada è l'autenticazione vera, non un indirizzo più lungo.
+ */
+import Base from '../layouts/Base.astro';
+import { href } from '../lib/url';
+import riservato from '../data/riservato.json';
+import ogImage from '../assets/og/home.png';
+
+const { titolo, introduzione, drive, documenti } = riservato;
+const haDocumenti = documenti.length > 0;
+const haDrive = drive.attivo && drive.url !== '';
+---
+
+<Base
+  titolo={`${titolo} | VIC`}
+  descrizione="Calendari dei turni e documenti di servizio per i volontari del VIC."
+  ogImage={ogImage}
+  ogAlt="Area riservata ai volontari del VIC"
+  noindex={true}
+>
+  <section class="fascia">
+    <div class="contenitore">
+      <div class="lettura pila">
+        <h1>{titolo}</h1>
+        <p class="introduzione">{introduzione}</p>
+      </div>
+
+      <div class="blocco">
+        <h2>Calendari dei turni</h2>
+        {haDocumenti ? (
+          <ul class="elenco">
+            {documenti.map((d) => (
+              <li class="voce">
+                <a class="voce__link" href={href(`/riservato-xa6hn9bx/${d.file}`)}>{d.etichetta}</a>
+                {d.aggiornato && <span class="voce__data">aggiornato il {d.aggiornato}</span>}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="vuoto">Nessun calendario pubblicato al momento.</p>
+        )}
+      </div>
+
+      {haDrive && (
+        <div class="blocco">
+          <h2>Altri documenti</h2>
+          <p>{drive.descrizione}</p>
+          <p><a class="voce__link" href={drive.url} target="_blank" rel="noopener">{drive.etichetta}</a></p>
+        </div>
+      )}
+
+      <div class="blocco avviso">
+        <p>
+          Questa pagina non è protetta da password: chiunque ne conosca l'indirizzo può aprirla.
+          Non pubblicate qui documenti con nomi, recapiti o altri dati personali, e non diffondete
+          l'indirizzo fuori dal gruppo dei volontari.
+        </p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .introduzione {
+    color: var(--testo-debole);
+  }
+  .blocco {
+    margin-top: var(--spazio-5);
+    max-width: var(--riga-max);
+  }
+  .elenco {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .voce {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--spazio-1) var(--spazio-2);
+    padding: var(--spazio-2) 0;
+    border-bottom: 1px solid var(--bordo);
+  }
+  .voce__link {
+    font-weight: 600;
+  }
+  .voce__data {
+    font-size: 0.875rem;
+    color: var(--testo-debole);
+  }
+  .vuoto {
+    color: var(--testo-debole);
+    font-style: italic;
+  }
+  .avviso {
+    border-left: var(--spessore-bordo) solid var(--bordo);
+    padding-left: var(--spazio-3);
+  }
+  .avviso p {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--testo-debole);
+  }
+</style>

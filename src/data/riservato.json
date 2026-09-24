@@ -1,0 +1,11 @@
+{
+  "titolo": "Area volontari",
+  "introduzione": "I calendari dei turni e i documenti di servizio. La pagina non compare nel menu del sito e non è indicizzata dai motori di ricerca: si raggiunge solo con l'indirizzo che vi è stato comunicato.",
+  "drive": {
+    "attivo": false,
+    "etichetta": "Cartella condivisa dei documenti",
+    "descrizione": "Per i documenti che non vengono pubblicati qui. Serve l'account con cui siete stati invitati.",
+    "url": ""
+  },
+  "documenti": []
+}

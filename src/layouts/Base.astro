@@ -20,9 +20,15 @@ interface Props {
   ogAlt: string;
   tipoOg?: 'website' | 'article';
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  /**
+   * Tiene la pagina fuori dai motori di ricerca (area riservata ai volontari).
+   * Va usato insieme al marcatore di percorso dichiarato in astro.config.mjs,
+   * che la esclude anche dalla sitemap: senza entrambi la pagina finisce indicizzata.
+   */
+  noindex?: boolean;
 }
 
-const { titolo, descrizione, ogImage, ogAlt, tipoOg = 'website', jsonLd } = Astro.props;
+const { titolo, descrizione, ogImage, ogAlt, tipoOg = 'website', jsonLd, noindex = false } = Astro.props;
 
 const impostazioni = (await getEntry('impostazioni', 'impostazioni'))!.data;
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
@@ -57,6 +63,10 @@ const haIndirizzo = impostazioni.indirizzo.via !== '';
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{titolo}</title>
     <meta name="description" content={descrizione} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    {/* Senza questo, un clic su un link esterno consegnerebbe al sito di destinazione
+        l'indirizzo riservato dentro l'header Referer. */}
+    {noindex && <meta name="referrer" content="no-referrer" />}
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/png" sizes="32x32" href={favicon32.src} />
     <link rel="apple-touch-icon" sizes="180x180" href={favicon180.src} />
