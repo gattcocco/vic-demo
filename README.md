@@ -5,6 +5,28 @@ Online su <https://gattcocco.github.io/vic-demo/>.
 
 La specifica vincolante è in [`docs/vic-demo-spec.md`](docs/vic-demo-spec.md); i volantini originali da cui vengono soglie e testi sono in [`docs/materiali-originali/`](docs/materiali-originali/).
 
+## Decisioni prese con il direttivo — aggiornato al 25 settembre 2026
+
+Queste scelte vengono dalle riunioni con il direttivo e **prevalgono sulla specifica** dove divergono. Chi lavora sul codice parta da qui.
+
+**Hosting.** Il piano cPanel su Keliweb viene dismesso: si rinnova **solo il dominio**. Il sito passa a **Cloudflare Pages**, che a differenza di GitHub Pages applica i 301 in `public/_redirects` — necessari per i ~32 vecchi indirizzi Joomla. DNS, posta ordinaria e le due caselle PEC **restano su Keliweb e non si toccano**: gli MX delle PEC vivono nelle zone DNS dei domini, e un errore lì ferma il domicilio legale dell'associazione.
+
+**Niente area riservata.** Scartata: su hosting statico con repository pubblico una password lato client non protegge nulla, e quella del vecchio sito Joomla non era mai stata usata. I documenti del direttivo vanno su un **Google Drive condiviso**, fuori dal sito.
+
+**Donazioni.** Pulsante grande e ben visibile **subito dopo la sezione di apertura della home**. L'incasso resta su servizi esterni — **PayPal e Satispay**, con i rispettivi QR — senza alcun gateway di pagamento sul sito: sono richieste informative privacy e cookie per i servizi di terze parti. **Il 5x1000 resta visibile tutto l'anno**, con il codice fiscale in chiaro.
+
+**Niente richieste di donazioni materiali.** Non si raccolgono vestiti o libri tramite il sito, per ragioni di sicurezza e di logistica; chi vuole donare libri va indirizzato al circuito delle biblioteche comunali di Roma.
+
+**Notizie: una sola sezione, con i tag.** Nessuna agenda separata e nessuna sezione per gli eventi culturali esterni: tutto dentro le notizie, in ordine cronologico, filtrabile per tag.
+
+**Immagini.** Arrivano da un Google Drive condiviso. I volti delle persone detenute vengono oscurati **dal VIC prima della consegna**. Nessuna fotografia d'archivio di carceri o di persone.
+
+**Social da collegare:** X, Facebook, Instagram, YouTube. **TikTok escluso.**
+
+**Collegamenti esterni da dare in evidenza:** la cooperativa **ETIAM**, legata all'associazione per le attività lavorative; il rapporto **Antigone**; il portale sul sovraffollamento carcerario.
+
+**Testi in arrivo dal cliente:** *Chi siamo* e *Cosa facciamo*, redatti da Daniela de Robert, con evidenza al reparto protetto di Rebibbia (Bertini), alla specificità della casa di accoglienza e al legame con ETIAM.
+
 ## 1. Cosa è questa demo, e cosa non è
 
 **È** un artefatto di vendita: tre pagine (home, *I numeri 2024*, *Vesti un detenuto povero*) più una sezione Notizie minima, costruite per essere mostrate al direttivo dell'associazione e per essere credibili come sito vero. Dimostra il sistema visivo derivato dal logo, la pagina dei dati con i grafici accessibili, il flusso di donazione e l'aggiornabilità dei contenuti dal pannello `/admin/`.
