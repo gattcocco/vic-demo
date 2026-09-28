@@ -21,9 +21,9 @@ interface Props {
   tipoOg?: 'website' | 'article';
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
   /**
-   * Tiene la pagina fuori dai motori di ricerca (area riservata ai volontari).
-   * Va usato insieme al marcatore di percorso dichiarato in astro.config.mjs,
-   * che la esclude anche dalla sitemap: senza entrambi la pagina finisce indicizzata.
+   * Tiene la pagina fuori dai motori di ricerca. Attenzione: da solo non basta,
+   * perché la sitemap continuerebbe a dichiararne l'esistenza — una pagina che
+   * deve restare fuori dai motori va anche esclusa dal filtro in astro.config.mjs.
    */
   noindex?: boolean;
 }
