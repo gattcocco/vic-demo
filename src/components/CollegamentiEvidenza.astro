@@ -1,0 +1,45 @@
+---
+/**
+ * Collegamenti esterni da dare in evidenza in home (decisione del direttivo del 25 settembre):
+ * ETIAM, il rapporto Antigone, il portale sul sovraffollamento. Letti da src/data/collegamenti.json,
+ * modificabile dal pannello. Una voce senza indirizzo mostra un segnaposto dichiarato invece di
+ * un link inventato.
+ */
+import dati from '../data/collegamenti.json';
+
+const collegamenti = dati.voci;
+---
+
+<section class="collegamenti fascia" aria-labelledby="collegamenti-titolo">
+  <div class="contenitore">
+    <h2 id="collegamenti-titolo">Da conoscere</h2>
+    <ul class="collegamenti__griglia">
+      {collegamenti.map((c) => (
+        <li class="collegamenti__voce">
+          <h3>
+            {c.url
+              ? <a href={c.url} target="_blank" rel="noopener">{c.titolo}</a>
+              : c.titolo}
+          </h3>
+          <p>{c.descrizione}</p>
+          {!c.url && <p class="piccolo debole">[Segnaposto: indirizzo da confermare con il VIC]</p>}
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .collegamenti { border-top: var(--spessore-bordo) solid var(--superficie-scura); }
+  .collegamenti h2 { margin-bottom: var(--spazio-4); }
+  .collegamenti__griglia {
+    display: grid;
+    gap: var(--spazio-4) var(--spazio-3);
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  }
+  .collegamenti__voce {
+    padding-top: var(--spazio-2);
+    border-top: var(--spessore-bordo) solid var(--bordo);
+  }
+  .collegamenti__voce > * + * { margin-top: var(--spazio-1); }
+</style>

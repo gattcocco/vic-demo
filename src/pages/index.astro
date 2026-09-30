@@ -11,6 +11,8 @@ import GrigliaAttivita from '../components/GrigliaAttivita.astro';
 import AnteprimaNumeri from '../components/AnteprimaNumeri.astro';
 import BloccoSostegno from '../components/BloccoSostegno.astro';
 import Partner from '../components/Partner.astro';
+import FasciaDona from '../components/FasciaDona.astro';
+import CollegamentiEvidenza from '../components/CollegamentiEvidenza.astro';
 import { assoluto } from '../lib/url';
 import og from '../assets/og/home.png';
 import logo from '../assets/logo-vic.png';
@@ -22,7 +24,7 @@ const descrizione =
   'Il VIC accompagna le persone detenute nei quattro istituti di Rebibbia: colloqui, pacchi vestiario, una casa per i permessi premio. Attività, numeri, come sostenerci.';
 
 // Pagina del corso per nuovi volontari sul sito attuale: usata finché urlVolontari non è nelle impostazioni.
-const URL_CORSO_VOLONTARI = 'https://www.vic-odv.org/index.php/mega/attivita-esterne/formazione-nuovi-volontari';
+const URL_CORSO_VOLONTARI = '/attivita/formazione-nuovi-volontari';
 const urlVolontari = impostazioni.urlVolontari || URL_CORSO_VOLONTARI || impostazioni.sitoAttuale;
 
 // JSON-LD NGO (spec §9): solo i campi presenti nelle impostazioni, niente valori inventati.
@@ -63,9 +65,11 @@ const jsonLd = {
   ogAlt="Pannello sabbia in cornice petrolio con il titolo «Ogni giorno entriamo nei quattro istituti di Rebibbia» e la firma VIC — Volontari In Carcere OdV, Roma"
   jsonLd={jsonLd}
 >
-  <Hero urlSostieni="/sostienici/vesti-un-detenuto-povero" urlVolontari={urlVolontari} />
+  <Hero urlSostieni="/sostienici" urlVolontari={urlVolontari} />
+  <FasciaDona />
   <CaroselloCampagne />
   <GrigliaAttivita />
+  <CollegamentiEvidenza />
   <AnteprimaNumeri anno="2024" />
   <BloccoSostegno />
   <Partner />

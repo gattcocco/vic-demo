@@ -1,0 +1,345 @@
+---
+/**
+ * Pagina campagna "Sostieni la Casa del VIC" (spec §6-bis): stesso impianto di "Vesti un detenuto
+ * povero", con le soglie della grafica di Natale (una notte, tre notti, una settimana).
+ * Ordine: titolo e frase → racconto → importi suggeriti → bonifico → PayPal e QR → detraibilità
+ * → due cifre dalla pagina numeri. Le cifre vengono da src/content/numeri/2024.json, i dati
+ * bancari e il codice fiscale da src/data/impostazioni.json: niente scritto a mano nel template.
+ */
+import { getEntry } from 'astro:content';
+import { getImage, Picture } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import Bottone from '../../components/ui/Bottone.astro';
+import CopiaIban from '../../components/ui/CopiaIban.astro';
+import ImportoSuggerito from '../../components/ui/ImportoSuggerito.astro';
+import { href, assoluto } from '../../lib/url';
+import { numero } from '../../lib/formato';
+// Manca ancora un'immagine Open Graph dedicata: si usa quella della home.
+import ogImage from '../../assets/og/home.png';
+
+const impostazioni = (await getEntry('impostazioni', 'impostazioni'))!.data;
+const campagna = (await getEntry('campagne', 'casa-del-vic'))!.data;
+const numeri = (await getEntry('numeri', '2024'))!.data;
+
+/** Legge una voce della pagina numeri; se manca, il build si ferma invece di stampare un vuoto. */
+function voce(sezione: string, id: string) {
+  const v = numeri.sezioni.find((s) => s.id === sezione)?.voci.find((x) => x.id === id);
+  if (!v) throw new Error(`Voce ${sezione}/${id} assente in numeri/${numeri.anno}.json`);
+  return v;
+}
+const ospiti = voce('accoglienza', 'persone-ospitate');
+const notti = voce('accoglienza', 'notti-ospitalita');
+const dettaglioOspiti = (ospiti.dettaglio ?? [])
+  .map((d) => `${numero(d.valore)} ${d.etichetta.charAt(0).toLowerCase()}${d.etichetta.slice(1)}`)
+  .join(', ');
+
+/* Soglie della campagna: sono quelle stampate sulla grafica "Casa del VIC" fornita dal VIC. */
+const kit = [
+  { importo: 10, titolo: 'Una notte', contenuto: 'di ospitalità per una persona in permesso o per un familiare' },
+  { importo: 25, titolo: 'Tre notti', contenuto: 'un permesso premio vissuto fuori dal carcere' },
+  { importo: 50, titolo: 'Una settimana', contenuto: 'di accoglienza nella Casa del VIC' },
+];
+const causale = 'Casa del VIC';
+
+/* Link PayPal: come per "Vesti un detenuto povero", prima quello generale in impostazioni.json;
+   se vuoto, il pulsante usato oggi dalla pagina attuale di questa campagna (hosted_button_id
+   2JQ2YZWNNK2J2). Da confermare con il VIC se ogni campagna deve avere il proprio. */
+const PAYPAL_CAMPAGNA = 'https://www.paypal.com/donate?hosted_button_id=2JQ2YZWNNK2J2';
+const paypal = impostazioni.paypal || PAYPAL_CAMPAGNA;
+
+/* Racconto: testo della pagina attuale, accorciato (spec §6.2). Il paragrafo finale con IBAN e
+   PayPal è sostituito dai blocchi strutturati qui sotto. */
+const racconto = [
+  'Molte persone detenute non possono uscire in permesso premio perché non hanno un posto dove trascorrere quei giorni. Da oltre trent\'anni, d\'accordo con le direzioni degli istituti di Rebibbia e con la Magistratura di sorveglianza, il VIC offre loro una casa: un ambiente tranquillo e dignitoso dove riprendere contatto con il mondo esterno.',
+  'La Casa accoglie anche i familiari, che vengono da fuori Roma per stare con i propri cari in permesso o per andarli a trovare in carcere. È aperta alle persone detenute più povere, italiane e straniere, senza distinzioni.',
+  'Il tuo contributo sostiene le spese vive e di mantenimento della Casa, perché possa continuare ad accogliere. Puoi donare con un bonifico oppure con PayPal.',
+];
+
+const titolo = 'Sostieni la Casa del VIC — regala giorni di ospitalità | VIC';
+const descrizione =
+  'Con 10, 25 o 50 euro regali una notte, tre notti o una settimana nella Casa del VIC a una persona detenuta in permesso o a un suo familiare. Bonifico o PayPal, donazione detraibile.';
+const ogAlt =
+  'Pannello sabbia in cornice petrolio con il titolo «Ogni giorno entriamo nei quattro istituti di Rebibbia» e la firma VIC — Volontari In Carcere OdV, Roma';
+const aggiornato = '2026-09-30';
+
+const canonical = assoluto('/sostienici/casa-del-vic');
+const og = await getImage({ src: ogImage, width: 1200, height: 630, format: 'jpg' });
+const ogUrl = new URL(og.src, Astro.site).toString();
+const organizzazione = {
+  '@type': 'Organization',
+  name: `${impostazioni.nome} — ${impostazioni.nomeEsteso}`,
+  url: assoluto('/'),
+};
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: campagna.titolo,
+  description: descrizione,
+  image: ogUrl,
+  inLanguage: 'it',
+  dateModified: aggiornato,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+  author: organizzazione,
+  publisher: organizzazione,
+};
+---
+
+<Base titolo={titolo} descrizione={descrizione} ogImage={ogImage} ogAlt={ogAlt} tipoOg="article" jsonLd={jsonLd}>
+  <section class="fascia">
+    <div class="contenitore">
+      <div class="griglia-12 intro">
+        <div class="lettura pila">
+          <h1>{campagna.titolo}</h1>
+          <p class="intro__frase">
+            Per chi esce in permesso premio senza avere una casa, e per i familiari che vengono da
+            lontano, la Casa del VIC è il posto dove vivere i primi giorni fuori.
+          </p>
+        </div>
+        <div class="intro__immagine">
+          <Picture
+            src={campagna.immagine}
+            formats={['avif']}
+            fallbackFormat="webp"
+            widths={[400, 800, 1200]}
+            sizes="(min-width: 768px) 24rem, 100vw"
+            width={600}
+            height={600}
+            alt={campagna.alt}
+            loading="eager"
+          />
+        </div>
+      </div>
+
+      <div class="blocco prosa">
+        {racconto.map((paragrafo) => <p>{paragrafo}</p>)}
+      </div>
+
+      <div class="blocco pila">
+        <h2>Scegli quanti giorni regalare</h2>
+        <p>
+          Sono le tre soglie della campagna del VIC: a ogni importo corrisponde un periodo di
+          ospitalità. Scegline uno, poi fai il bonifico o dona con PayPal.
+        </p>
+        <ImportoSuggerito destinazione="#bonifico" importi={kit} />
+      </div>
+    </div>
+  </section>
+
+  <section class="fascia fascia--alt" id="bonifico" aria-labelledby="titolo-bonifico">
+    <div class="contenitore">
+      <div class="griglia-12">
+        <div class="lettura pila">
+          <h2 id="titolo-bonifico">Con un bonifico</h2>
+          <p>
+            Dalla tua banca o dall'app del conto. Copia i dati qui sotto e indica la causale, così
+            sappiamo che il contributo è per la Casa.
+          </p>
+
+          <dl class="dati">
+            <div class="dati__voce">
+              <dt>Intestatario</dt>
+              <dd>{impostazioni.intestatario}</dd>
+            </div>
+            <div class="dati__voce">
+              <dt>Banca</dt>
+              <dd>{impostazioni.banca}</dd>
+            </div>
+          </dl>
+
+          <CopiaIban id="iban" etichetta="IBAN" valore={impostazioni.iban} spaziato />
+
+          <div class="scelta">
+            <p class="scelta__etichetta">Importo scelto:</p>
+            <p class="scelta__valore" data-importo-scelto hidden></p>
+          </div>
+
+          <CopiaIban id="causale" etichetta="Causale" valore={causale} />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fascia">
+    <div class="contenitore">
+      <div class="modi">
+        <div class="pila">
+          <h2>Con PayPal</h2>
+          <p>
+            Se preferisci pagare con carta o con il tuo conto PayPal, il pulsante apre la pagina di
+            donazione del VIC. Nel messaggio scrivi la causale «{causale}».
+          </p>
+          <!-- Senza un link PayPal (impostazioni.json o costante nel frontmatter) il pulsante non compare
+               e al suo posto resta un segnaposto dichiarato. -->
+          {paypal ? (
+            <p><Bottone href={paypal}>Dona con PayPal</Bottone></p>
+          ) : (
+            <p><strong>[Segnaposto: link PayPal dell'associazione da inserire]</strong></p>
+          )}
+        </div>
+
+        <div class="pila">
+          <h2>Con il QR code</h2>
+          <p>
+            Da telefono inquadra il codice con la fotocamera: si apre la stessa pagina di donazione
+            PayPal, senza scrivere nulla.
+          </p>
+          <!--
+            Segnaposto dichiarato. Il QR stampato sui volantini del VIC è quello generato da PayPal
+            e non è decodificabile dai file del repo: l'associazione deve fornire il file ufficiale,
+            oppure lo si genera dal link PayPal una volta confermato. In demo non si disegna un QR finto.
+          -->
+          <div class="qr-segnaposto">
+            <p class="piccolo">QR code PayPal da inserire</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="blocco griglia-12">
+        <div class="lettura pila">
+          <h2>Detraibilità</h2>
+          <p>
+            La donazione è detraibile o deducibile ai sensi dell'art. 83 del Codice del Terzo
+            settore (D.Lgs. 117/2017), a condizione che sia fatta con mezzi tracciabili: bonifico,
+            carta o PayPal, non contanti. Conserva la ricevuta per la dichiarazione dei redditi.
+          </p>
+          <CopiaIban id="cf" etichetta="Codice fiscale" valore={impostazioni.codiceFiscale} />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fascia fascia--scura">
+    <div class="contenitore">
+      <div class="griglia-12">
+        <div class="lettura pila">
+          <h2>Cosa hai reso possibile</h2>
+          <p>
+            Ogni notte nella Casa è sostenuta da donazioni come la tua. Due cifre dal {numeri.anno},
+            dalla pagina dei numeri del VIC.
+          </p>
+          <ul class="cifre">
+            <li>
+              <strong class="cifre__valore">{numero(ospiti.valore)}</strong>
+              <span class="cifre__etichetta">{ospiti.etichetta}</span>
+              {dettaglioOspiti && <span class="cifre__dettaglio debole">{dettaglioOspiti}</span>}
+            </li>
+            <li>
+              <strong class="cifre__valore">{numero(notti.valore)}</strong>
+              <span class="cifre__etichetta">{notti.etichetta}</span>
+            </li>
+          </ul>
+          <p><a href={href(`/numeri/${numeri.anno}`)}>Tutti i numeri del {numeri.anno}</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .intro {
+    align-items: start;
+  }
+  .intro__frase {
+    font-size: 1.15em;
+  }
+  .intro__immagine {
+    grid-column: span 12;
+  }
+  @media (min-width: 768px) {
+    .intro__immagine {
+      grid-column: span 4;
+    }
+  }
+  .intro__immagine img {
+    width: 100%;
+    height: auto;
+  }
+
+  .blocco {
+    margin-top: var(--spazio-5);
+  }
+
+  /* Dati del bonifico: etichetta sopra, valore in evidenza, come nel blocco di copia. */
+  .dati {
+    display: grid;
+    gap: var(--spazio-2) var(--spazio-4);
+  }
+  @media (min-width: 600px) {
+    .dati {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .dati dt {
+    color: var(--testo);
+  }
+  .dati dd {
+    font-weight: 600;
+    font-size: 1.15em;
+  }
+
+  /* "Importo scelto": lo compila ImportoSuggerito via JavaScript. Finché il valore resta nascosto,
+     resta nascosta anche l'etichetta. */
+  .scelta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 .5em;
+  }
+  .scelta:has([data-importo-scelto][hidden]) {
+    display: none;
+  }
+  .scelta > p {
+    margin: 0;
+  }
+  .scelta__valore {
+    font-weight: 600;
+    font-size: 1.15em;
+  }
+
+  .modi {
+    display: grid;
+    gap: var(--spazio-4);
+  }
+  @media (min-width: 768px) {
+    .modi {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* Riquadro squadrato in attesa del QR ufficiale: bordo nel colore del testo, nessun QR finto. */
+  .qr-segnaposto {
+    width: 200px;
+    max-width: 100%;
+    height: 200px;
+    display: flex;
+    align-items: flex-end;
+    padding: var(--spazio-2);
+    border: var(--spessore-bordo) solid var(--testo);
+    color: var(--testo-debole);
+  }
+
+  /* Le due cifre dalla pagina numeri: grandi, ferme, senza contatori. */
+  .cifre {
+    display: grid;
+    gap: var(--spazio-4);
+  }
+  @media (min-width: 600px) {
+    .cifre {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .cifre li {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spazio-1);
+  }
+  .cifre__valore {
+    font-family: var(--font-titoli);
+    font-size: var(--cifra);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .cifre__etichetta {
+    font-weight: 600;
+  }
+</style>

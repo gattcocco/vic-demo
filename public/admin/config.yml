@@ -579,8 +579,37 @@ collections:
             name: urlVolontari
             widget: string
             required: false
-            hint: Dove porta il pulsante "Diventa volontario" della home. Oggi la pagina del corso sul sito attuale.
+            hint: Dove porta il pulsante "Diventa volontario" della home (es. /attivita/formazione-nuovi-volontari).
           - label: Iscrizione al RUNTS
             name: runts
             widget: string
             hint: La riga sul registro del Terzo settore che compare nel piè di pagina (es. Iscritta al RUNTS — Repertorio n. …).
+
+  # ---------------------------------------------------------------------------------------
+  - name: collegamenti
+    label: Collegamenti in evidenza
+    description: I siti esterni segnalati in home, nella sezione "Da conoscere".
+    files:
+      - name: collegamenti
+        label: Collegamenti in evidenza
+        file: src/data/collegamenti.json
+        fields:
+          - label: Collegamenti
+            name: voci
+            widget: list
+            label_singular: Collegamento
+            summary: "{{fields.titolo}}"
+            fields:
+              - label: Titolo
+                name: titolo
+                widget: string
+                hint: Il nome del sito o della realtà (es. ETIAM).
+              - label: Descrizione
+                name: descrizione
+                widget: string
+                hint: Una riga che dice cos'è e perché conviene conoscerlo.
+              - label: Indirizzo
+                name: url
+                widget: string
+                required: false
+                hint: L'indirizzo completo, che inizia con https://. Vuoto = il sito mostra un segnaposto.

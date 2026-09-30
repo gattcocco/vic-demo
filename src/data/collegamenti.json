@@ -1,0 +1,19 @@
+{
+  "voci": [
+    {
+      "titolo": "ETIAM",
+      "descrizione": "La cooperativa legata al VIC per le attività lavorative.",
+      "url": ""
+    },
+    {
+      "titolo": "Il rapporto Antigone",
+      "descrizione": "Il rapporto annuale dell'associazione Antigone sulle condizioni di detenzione in Italia.",
+      "url": "https://www.rapportoantigone.it"
+    },
+    {
+      "titolo": "Il sovraffollamento delle carceri",
+      "descrizione": "I dati aggiornati su quante persone sono detenute rispetto ai posti disponibili.",
+      "url": ""
+    }
+  ]
+}

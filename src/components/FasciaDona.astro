@@ -1,0 +1,51 @@
+---
+/**
+ * Pulsante donazioni grande subito dopo l'apertura della home (decisione del direttivo del
+ * 25 settembre). Una frase, un pulsante verso Sostienici, e il codice fiscale per il 5x1000
+ * che il direttivo vuole visibile tutto l'anno.
+ */
+import { getEntry } from 'astro:content';
+import Bottone from './ui/Bottone.astro';
+import { href } from '../lib/url';
+
+const impostazioni = (await getEntry('impostazioni', 'impostazioni'))!.data;
+---
+
+<section class="dona fascia--scura" aria-labelledby="dona-titolo">
+  <div class="contenitore dona__interno">
+    <div class="dona__testo">
+      <h2 id="dona-titolo">Sostieni il VIC</h2>
+      <p>Con una donazione, con il 5x1000, con PayPal o Satispay. Le donazioni sono detraibili.</p>
+    </div>
+    <div class="dona__azioni">
+      <Bottone href="/sostienici" classe="dona__bottone">Dona ora</Bottone>
+      <p class="piccolo">
+        5x1000: codice fiscale <strong>{impostazioni.codiceFiscale}</strong> ·
+        <a href={href('/sostienici/5x1000')}>come si fa</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Il carosello che segue non ha margine superiore proprio: lo spazio lo dà questa fascia. */
+  .dona { padding-block: var(--spazio-4); margin-bottom: var(--spazio-5); }
+  .dona__interno {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spazio-3) var(--spazio-5);
+  }
+  .dona__testo > * + * { margin-top: var(--spazio-1); }
+  .dona__azioni {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spazio-2);
+  }
+  .dona :global(.dona__bottone) {
+    font-size: 1.25rem;
+    padding: .8em 2.2em;
+  }
+</style>
