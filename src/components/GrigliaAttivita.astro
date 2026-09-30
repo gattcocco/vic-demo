@@ -6,6 +6,7 @@
  * La separazione dall'hero/carosello (stessa superficie) è un bordo superiore in --superficie-scura.
  */
 import attivita from '../data/attivita.json';
+import { href } from '../lib/url';
 ---
 
 <section class="attivita fascia" id="attivita" aria-labelledby="attivita-titolo">
@@ -14,7 +15,7 @@ import attivita from '../data/attivita.json';
     <ul class="attivita__griglia">
       {attivita.map((a) => (
         <li class="attivita__blocco" id={`attivita-${a.id}`}>
-          <h3>{a.titolo}</h3>
+          <h3><a href={href(`/attivita/${a.id}`)}>{a.titolo}</a></h3>
           <p>{a.testo}</p>
         </li>
       ))}

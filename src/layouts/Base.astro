@@ -39,9 +39,19 @@ const favicon32 = await getImage({ src: logo, width: 32, height: 32, format: 'pn
 const favicon180 = await getImage({ src: logo, width: 180, height: 180, format: 'png' });
 
 const navigazione = [
-  { etichetta: 'Le attività', url: '/#attivita' },
+  { etichetta: 'Chi siamo', url: '/chi-siamo' },
+  { etichetta: 'Le attività', url: '/attivita' },
   { etichetta: 'I numeri', url: '/numeri/2024' },
-  { etichetta: 'Sostienici', url: '/sostienici/vesti-un-detenuto-povero' },
+  { etichetta: 'Sostienici', url: '/sostienici' },
+  { etichetta: 'Contatti', url: '/contatti' },
+];
+
+// Le pagine legali vanno raggiungibili da ogni pagina: stanno nel piè di pagina.
+const legali = [
+  { etichetta: 'Privacy', url: '/privacy' },
+  { etichetta: 'Cookie', url: '/cookie' },
+  { etichetta: 'Informativa volontari', url: '/informativa-volontari' },
+  { etichetta: "Termini d'uso", url: '/termini-d-uso' },
 ];
 
 const social = [
@@ -158,6 +168,14 @@ const haIndirizzo = impostazioni.indirizzo.via !== '';
           <p class="piccolo debole">Versione dimostrativa del nuovo sito.</p>
         </div>
       </div>
+      <div class="contenitore pie__legali">
+        <ul class="piccolo" aria-label="Informazioni legali">
+          <li><a href={href('/istituzioni')}>Le istituzioni</a></li>
+          {legali.map((voce) => (
+            <li><a href={href(voce.url)}>{voce.etichetta}</a></li>
+          ))}
+        </ul>
+      </div>
     </footer>
   </body>
 </html>
@@ -212,4 +230,12 @@ const haIndirizzo = impostazioni.indirizzo.via !== '';
   }
   .pie address { font-style: normal; }
   .lista-contatti { display: flex; flex-direction: column; gap: var(--spazio-1); }
+  .pie__legali { margin-top: var(--spazio-4); }
+  .pie__legali ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spazio-1) var(--spazio-3);
+    padding-top: var(--spazio-2);
+    border-top: 1px solid var(--superficie-alt);
+  }
 </style>

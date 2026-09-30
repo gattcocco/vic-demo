@@ -1,0 +1,103 @@
+---
+/**
+ * Impianto comune delle pagine di testo (src/content/pagine): titolo, frase d'apertura, eventuale
+ * riquadro "testo da approvare", corpo in Markdown e data di aggiornamento. Il corpo arriva nello
+ * slot predefinito; lo slot "dopo" accoglie blocchi costruiti dai dati (cifre, elenchi di schede).
+ */
+import Base from '../layouts/Base.astro';
+import ogPredefinita from '../assets/og/home.png';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  titolo: string;
+  titoloSeo?: string;
+  descrizione: string;
+  sommario?: string;
+  aggiornato: Date;
+  daApprovare?: boolean;
+  /** Riga sopra il titolo, per esempio la sezione a cui la pagina appartiene. */
+  occhiello?: string;
+  ogImage?: ImageMetadata;
+  ogAlt?: string;
+}
+
+const {
+  titolo,
+  titoloSeo,
+  descrizione,
+  sommario,
+  aggiornato,
+  daApprovare = false,
+  occhiello,
+  ogImage = ogPredefinita,
+  ogAlt = 'Il marchio del VIC, una vetrata con colomba e ramo d\'ulivo, su fondo petrolio',
+} = Astro.props;
+
+const dataLeggibile = aggiornato.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+<Base titolo={`${titoloSeo ?? titolo} | VIC`} descrizione={descrizione} ogImage={ogImage} ogAlt={ogAlt}>
+  <article>
+    <section class="fascia">
+      <div class="contenitore">
+        <header class="testa prosa">
+          {occhiello && <p class="testa__occhiello">{occhiello}</p>}
+          <h1>{titolo}</h1>
+          {sommario && <p class="testa__sommario">{sommario}</p>}
+        </header>
+
+        {daApprovare && (
+          <p class="avviso prosa">
+            <strong>Testo in attesa di approvazione.</strong> Questa pagina è stata preparata per il
+            nuovo sito e deve essere rivista dal VIC prima della pubblicazione definitiva.
+          </p>
+        )}
+
+        <div class="corpo prosa">
+          <slot />
+        </div>
+
+        <slot name="dopo" />
+
+        <p class="aggiornato piccolo debole">
+          Aggiornato il <time datetime={aggiornato.toISOString().slice(0, 10)}>{dataLeggibile}</time>
+        </p>
+      </div>
+    </section>
+  </article>
+</Base>
+
+<style>
+  .testa > * + * { margin-top: var(--spazio-2); }
+  .testa__occhiello {
+    font-weight: 600;
+    color: var(--testo-debole);
+  }
+  .testa__sommario { font-size: 1.15em; }
+  .avviso {
+    margin-top: var(--spazio-4);
+    padding: var(--spazio-2) var(--spazio-3);
+    border-left: var(--spessore-bordo) solid var(--testo);
+    background: var(--superficie-alt);
+  }
+  .corpo { margin-top: var(--spazio-4); }
+  /* Il Markdown non ha classi: elenchi e tabelle del corpo prendono qui la loro forma. */
+  .corpo :global(ul) { list-style: disc; padding-left: 1.25em; }
+  .corpo :global(ol) { list-style: decimal; padding-left: 1.25em; }
+  .corpo :global(li + li) { margin-top: .4em; }
+  .corpo :global(details) {
+    border-top: var(--spessore-bordo) solid var(--bordo);
+    padding-top: var(--spazio-2);
+  }
+  .corpo :global(summary) { cursor: pointer; font-weight: 600; }
+  .corpo :global(details[open] summary) { margin-bottom: var(--spazio-2); }
+  .corpo :global(table) { width: 100%; border-collapse: collapse; }
+  .corpo :global(th), .corpo :global(td) {
+    text-align: left;
+    vertical-align: top;
+    padding: .5em .75em .5em 0;
+    border-bottom: 1px solid var(--bordo);
+  }
+  .corpo :global(th) { font-weight: 600; }
+  .aggiornato { margin-top: var(--spazio-5); }
+</style>

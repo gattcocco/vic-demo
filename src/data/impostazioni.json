@@ -5,6 +5,7 @@
   "codiceFiscale": "97112380585",
   "iban": "IT77E0306909606100000114867",
   "banca": "Banca Intesa Sanpaolo",
+  "bic": "BCITITMM",
   "intestatario": "Volontari In Carcere OdV",
   "paypal": "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=JFZMSHC5GN5R6",
   "telefoni": [
@@ -31,6 +32,7 @@
     "linkedin": ""
   },
   "sitoAttuale": "https://www.vic-odv.org",
+  "sedeLegale": "Via Raffaele Majetti 95, Roma",
   "runts": "Organizzazione di volontariato iscritta al RUNTS (Repertorio n. 98825 del 01.02.2023)",
   "urlVolontari": "https://www.vic-odv.org/index.php/mega/attivita-esterne/formazione-nuovi-volontari"
 }

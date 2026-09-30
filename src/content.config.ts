@@ -86,9 +86,35 @@ const impostazioni = defineCollection({
       linkedin: z.string().optional(),
     }),
     sitoAttuale: z.string(),
+    // Sede legale: la riporta l'informativa privacy del sito attuale. Non e' detto che coincida
+    // con la sede operativa (indirizzo), che resta da confermare con il VIC.
+    sedeLegale: z.string().default(''),
+    bic: z.string().default(''),
     urlVolontari: z.string().default(''),
     runts: z.string(),
   }),
 });
 
-export const collections = { campagne, numeri, post, impostazioni };
+// Pagine di testo: src/content/pagine/<slug>.md, con sottocartelle per sezione
+// (attivita/, istituzioni/). Il percorso del file decide l'indirizzo della pagina.
+const pagine = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/pagine' }),
+  schema: z.object({
+    titolo: z.string(),
+    // Titolo della scheda del browser e dei risultati di ricerca; se manca si usa `titolo`.
+    titoloSeo: z.string().optional(),
+    descrizione: z.string(),
+    // Frase d'apertura sotto il titolo, in corpo piu' grande.
+    sommario: z.string().optional(),
+    aggiornato: z.coerce.date(),
+    // Testo non ancora approvato dal VIC: la pagina lo dichiara in un riquadro.
+    daApprovare: z.boolean().default(false),
+    // Solo per le schede delle istituzioni: gruppo in cui compaiono nell'indice.
+    gruppo: z.enum(['garanti', 'esecuzione', 'territorio']).optional(),
+    ordine: z.number().int().default(0),
+    // Solo per le attivita': sezione di src/content/numeri/<anno>.json da mostrare in pagina.
+    numeri: z.string().optional(),
+  }),
+});
+
+export const collections = { campagne, numeri, post, impostazioni, pagine };

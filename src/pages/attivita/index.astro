@@ -1,0 +1,43 @@
+---
+/**
+ * Indice delle attività: una voce per ogni pagina in src/content/pagine/attivita, nell'ordine
+ * del campo `ordine`, con titolo e frase d'apertura.
+ */
+import { getCollection } from 'astro:content';
+import PaginaTesto from '../../components/PaginaTesto.astro';
+import { href } from '../../lib/url';
+
+const pagine = (await getCollection('pagine', (p) => p.id.startsWith('attivita/'))).sort(
+  (a, b) => a.data.ordine - b.data.ordine,
+);
+const aggiornato = new Date(Math.max(...pagine.map((p) => p.data.aggiornato.getTime())));
+---
+
+<PaginaTesto
+  titolo="Le attività"
+  descrizione="Ascolto, accoglienza, aiuto, formazione e sensibilizzazione: cosa fanno i volontari del VIC dentro e fuori dal carcere."
+  sommario="Dentro gli istituti di Rebibbia e fuori, nella Casa del VIC e nella città."
+  aggiornato={aggiornato}
+>
+  <ul slot="dopo" class="elenco">
+    {pagine.map((p) => (
+      <li>
+        <h2><a href={href(`/${p.id}`)}>{p.data.titolo}</a></h2>
+        <p>{p.data.sommario ?? p.data.descrizione}</p>
+      </li>
+    ))}
+  </ul>
+</PaginaTesto>
+
+<style>
+  .elenco {
+    display: grid;
+    gap: var(--spazio-4) var(--spazio-3);
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  }
+  .elenco li {
+    padding-top: var(--spazio-2);
+    border-top: var(--spessore-bordo) solid var(--bordo);
+  }
+  .elenco h2 { font-size: var(--titolo-3); margin-bottom: var(--spazio-1); }
+</style>

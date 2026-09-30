@@ -1,0 +1,74 @@
+---
+/**
+ * Pagine delle attività: src/content/pagine/attivita/<slug>.md -> /attivita/<slug>/.
+ * Se il file indica una sezione in `numeri`, sotto il testo compaiono le cifre dell'anno più
+ * recente in src/content/numeri: così le pagine non riportano cifre scritte a mano che poi
+ * divergono da quelle ufficiali, com'era successo sul sito attuale.
+ */
+import { getCollection, render } from 'astro:content';
+import PaginaTesto from '../../components/PaginaTesto.astro';
+import { href } from '../../lib/url';
+import { numero } from '../../lib/formato';
+
+export async function getStaticPaths() {
+  const pagine = await getCollection('pagine', (p) => p.id.startsWith('attivita/'));
+  const anni = (await getCollection('numeri')).sort((a, b) => b.data.anno - a.data.anno);
+  const ultimo = anni[0]?.data;
+  return pagine.map((pagina) => ({
+    params: { slug: pagina.id.replace('attivita/', '') },
+    props: {
+      pagina,
+      anno: ultimo?.anno,
+      sezione: pagina.data.numeri ? ultimo?.sezioni.find((s) => s.id === pagina.data.numeri) : undefined,
+    },
+  }));
+}
+
+const { pagina, anno, sezione } = Astro.props;
+if (pagina.data.numeri && !sezione) {
+  throw new Error(`Sezione "${pagina.data.numeri}" assente nei numeri del ${anno}: controlla ${pagina.id}.md`);
+}
+const { Content } = await render(pagina);
+---
+
+<PaginaTesto {...pagina.data} occhiello="Le attività">
+  <Content />
+  {sezione && (
+    <section slot="dopo" class="cifre-sezione" aria-labelledby="titolo-cifre">
+      <h2 id="titolo-cifre">Nel {anno}</h2>
+      <ul class="cifre">
+        {sezione.voci.map((v) => (
+          <li>
+            <strong class="cifre__valore">{numero(v.valore)}</strong>
+            <span class="cifre__etichetta">{v.etichetta}</span>
+          </li>
+        ))}
+      </ul>
+      <p><a href={href(`/numeri/${anno}`)}>Tutti i numeri del {anno}, con le definizioni</a></p>
+    </section>
+  )}
+</PaginaTesto>
+
+<style>
+  .cifre-sezione {
+    margin-top: var(--spazio-5);
+    padding-top: var(--spazio-3);
+    border-top: var(--spessore-bordo) solid var(--superficie-scura);
+  }
+  .cifre-sezione > * + * { margin-top: var(--spazio-3); }
+  .cifre {
+    display: grid;
+    gap: var(--spazio-3);
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  }
+  .cifre li { display: flex; flex-direction: column; gap: var(--spazio-1); }
+  .cifre__valore {
+    font-family: var(--font-titoli);
+    /* Più piccola della --cifra della home: qui le cifre possono essere cinque in fila. */
+    font-size: clamp(2.25rem, 4vw, 3.25rem);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .cifre__etichetta { font-weight: 600; }
+</style>

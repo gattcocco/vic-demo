@@ -1,0 +1,26 @@
+---
+/** Schede delle istituzioni: src/content/pagine/istituzioni/<slug>.md -> /istituzioni/<slug>/. */
+import { getCollection, render } from 'astro:content';
+import PaginaTesto from '../../components/PaginaTesto.astro';
+import { href } from '../../lib/url';
+
+export async function getStaticPaths() {
+  const pagine = await getCollection('pagine', (p) => p.id.startsWith('istituzioni/'));
+  return pagine.map((pagina) => ({
+    params: { slug: pagina.id.replace('istituzioni/', '') },
+    props: { pagina },
+  }));
+}
+
+const { pagina } = Astro.props;
+const { Content } = await render(pagina);
+---
+
+<PaginaTesto {...pagina.data} occhiello="Le istituzioni">
+  <Content />
+  <p slot="dopo" class="ritorno"><a href={href('/istituzioni')}>Tutte le istituzioni</a></p>
+</PaginaTesto>
+
+<style>
+  .ritorno { margin-top: var(--spazio-4); font-weight: 600; }
+</style>

@@ -281,6 +281,173 @@ collections:
         hint: Il testo della notizia. Usa "persona detenuta" nei testi descrittivi; il nome della campagna "Vesti un detenuto povero" resta com'è.
 
   # ---------------------------------------------------------------------------------------
+  # Le pagine di testo. Tre raccolte, una per cartella: il nome del file decide l'indirizzo
+  # (privacy.md -> /privacy/, attivita/ascolto.md -> /attivita/ascolto/). Per questo i nuovi file
+  # prendono il nome dal titolo e non conviene rinominarli: l'indirizzo vecchio smetterebbe di
+  # funzionare.
+  - name: pagine
+    label: Pagine
+    label_singular: Pagina
+    description: Chi siamo e le pagine legali (privacy, cookie, informativa volontari, termini d'uso).
+    folder: src/content/pagine
+    extension: md
+    format: frontmatter
+    create: false
+    identifier_field: titolo
+    summary: "{{titolo}}"
+    fields:
+      - label: Titolo
+        name: titolo
+        widget: string
+        hint: Il titolo in cima alla pagina.
+      - label: Titolo per i motori di ricerca
+        name: titoloSeo
+        widget: string
+        required: false
+        hint: Facoltativo. Il titolo nella scheda del browser e su Google, se deve essere diverso da quello in pagina.
+      - label: Descrizione
+        name: descrizione
+        widget: text
+        hint: Una o due frasi che riassumono la pagina. Compaiono su Google e nelle anteprime sui social.
+      - label: Frase d'apertura
+        name: sommario
+        widget: text
+        required: false
+        hint: Facoltativa. Compare sotto il titolo, in corpo più grande.
+      - label: Aggiornato il
+        name: aggiornato
+        widget: datetime
+        format: YYYY-MM-DD
+        time_format: false
+        hint: La data dell'ultima modifica sostanziale. Compare in fondo alla pagina.
+      - label: Da approvare
+        name: daApprovare
+        widget: boolean
+        default: false
+        hint: Acceso = la pagina mostra il riquadro 'Testo in attesa di approvazione'. Spegni quando il testo è approvato.
+      - label: Testo
+        name: body
+        widget: markdown
+        hint: Il testo della pagina. I titoli di sezione si fanno con 'Titolo 2'.
+  # ---------------------------------------------------------------------------------------
+  - name: attivita
+    label: Attività
+    label_singular: Attività
+    description: Le pagine delle attività (ascolto, accoglienza, aiuto, formazione, sensibilizzazione).
+    folder: src/content/pagine/attivita
+    extension: md
+    format: frontmatter
+    create: true
+    identifier_field: titolo
+    summary: "{{ordine}}. {{titolo}}"
+    sortable_fields: [ordine, titolo]
+    fields:
+      - label: Titolo
+        name: titolo
+        widget: string
+        hint: Il titolo in cima alla pagina.
+      - label: Titolo per i motori di ricerca
+        name: titoloSeo
+        widget: string
+        required: false
+        hint: Facoltativo. Il titolo nella scheda del browser e su Google, se deve essere diverso da quello in pagina.
+      - label: Descrizione
+        name: descrizione
+        widget: text
+        hint: Una o due frasi che riassumono la pagina. Compaiono su Google e nelle anteprime sui social.
+      - label: Frase d'apertura
+        name: sommario
+        widget: text
+        required: false
+        hint: Facoltativa. Compare sotto il titolo, in corpo più grande.
+      - label: Aggiornato il
+        name: aggiornato
+        widget: datetime
+        format: YYYY-MM-DD
+        time_format: false
+        hint: La data dell'ultima modifica sostanziale. Compare in fondo alla pagina.
+      - label: Da approvare
+        name: daApprovare
+        widget: boolean
+        default: false
+        hint: Acceso = la pagina mostra il riquadro 'Testo in attesa di approvazione'. Spegni quando il testo è approvato.
+      - label: Testo
+        name: body
+        widget: markdown
+        hint: Il testo della pagina. I titoli di sezione si fanno con 'Titolo 2'.
+      - label: Ordine
+        name: ordine
+        widget: number
+        value_type: int
+        default: 0
+        hint: Posizione nell'elenco delle attività. 1 è la prima.
+      - label: Cifre da mostrare
+        name: numeri
+        widget: select
+        required: false
+        options: [ascolto, accoglienza, aiuti, sensibilizzazione]
+        hint: Facoltativo. La sezione della pagina dei numeri da mostrare sotto il testo.
+  # ---------------------------------------------------------------------------------------
+  - name: istituzioni
+    label: Istituzioni
+    label_singular: Scheda
+    description: Le schede delle istituzioni con cui lavora il VIC.
+    folder: src/content/pagine/istituzioni
+    extension: md
+    format: frontmatter
+    create: true
+    identifier_field: titolo
+    summary: "{{titolo}}"
+    fields:
+      - label: Titolo
+        name: titolo
+        widget: string
+        hint: Il titolo in cima alla pagina.
+      - label: Titolo per i motori di ricerca
+        name: titoloSeo
+        widget: string
+        required: false
+        hint: Facoltativo. Il titolo nella scheda del browser e su Google, se deve essere diverso da quello in pagina.
+      - label: Descrizione
+        name: descrizione
+        widget: text
+        hint: Una o due frasi che riassumono la pagina. Compaiono su Google e nelle anteprime sui social.
+      - label: Frase d'apertura
+        name: sommario
+        widget: text
+        required: false
+        hint: Facoltativa. Compare sotto il titolo, in corpo più grande.
+      - label: Aggiornato il
+        name: aggiornato
+        widget: datetime
+        format: YYYY-MM-DD
+        time_format: false
+        hint: La data dell'ultima modifica sostanziale. Compare in fondo alla pagina.
+      - label: Da approvare
+        name: daApprovare
+        widget: boolean
+        default: false
+        hint: Acceso = la pagina mostra il riquadro 'Testo in attesa di approvazione'. Spegni quando il testo è approvato.
+      - label: Testo
+        name: body
+        widget: markdown
+        hint: Il testo della pagina. I titoli di sezione si fanno con 'Titolo 2'.
+      - label: Gruppo
+        name: gruppo
+        widget: select
+        options:
+          - { label: Le figure di garanzia, value: garanti }
+          - { label: Chi si occupa dell'esecuzione della pena, value: esecuzione }
+          - { label: Fuori dal carcere, value: territorio }
+        hint: In quale gruppo compare la scheda nella pagina delle istituzioni.
+      - label: Ordine
+        name: ordine
+        widget: number
+        value_type: int
+        default: 0
+        hint: Posizione all'interno del gruppo. 1 è la prima.
+
+  # ---------------------------------------------------------------------------------------
   - name: impostazioni
     label: Impostazioni
     description: I dati dell'associazione usati in tutto il sito (piè di pagina, blocchi di donazione, contatti).
@@ -315,6 +482,11 @@ collections:
             name: banca
             widget: string
             hint: Il nome della banca (es. Banca Intesa Sanpaolo).
+          - label: BIC/SWIFT
+            name: bic
+            widget: string
+            required: false
+            hint: Il codice della banca per i bonifici dall'estero (es. BCITITMM). Vuoto = non compare.
           - label: Intestatario del conto
             name: intestatario
             widget: string
@@ -398,6 +570,11 @@ collections:
             name: sitoAttuale
             widget: string
             hint: L'indirizzo del sito in uso oggi (https://www.vic-odv.org). La demo ci manda per le pagine non ancora ricostruite.
+          - label: Sede legale
+            name: sedeLegale
+            widget: string
+            required: false
+            hint: L'indirizzo della sede legale (es. Via Raffaele Majetti 95, Roma). Compare nella pagina Contatti.
           - label: Pagina "Diventa volontario"
             name: urlVolontari
             widget: string

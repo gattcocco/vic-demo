@@ -1,0 +1,73 @@
+---
+/**
+ * Il 5x1000: cosa è e come si dona. Il codice fiscale viene da impostazioni.json, le cifre sulle
+ * attività sostenute dai numeri dell'anno più recente (il sito attuale riportava "2 case" e
+ * "1500 pacchi", non più veri).
+ */
+import { getCollection, getEntry } from 'astro:content';
+import PaginaTesto from '../../components/PaginaTesto.astro';
+import CopiaIban from '../../components/ui/CopiaIban.astro';
+import { href } from '../../lib/url';
+import { numero } from '../../lib/formato';
+
+const impostazioni = (await getEntry('impostazioni', 'impostazioni'))!.data;
+const anno = (await getCollection('numeri')).sort((a, b) => b.data.anno - a.data.anno)[0].data;
+function voce(sezione: string, id: string) {
+  const v = anno.sezioni.find((s) => s.id === sezione)?.voci.find((x) => x.id === id);
+  if (!v) throw new Error(`Voce ${sezione}/${id} assente nei numeri del ${anno.anno}`);
+  return v;
+}
+const pacchi = voce('aiuti', 'pacchi-vestiario');
+const notti = voce('accoglienza', 'notti-ospitalita');
+const colloqui = voce('ascolto', 'colloqui-detenuti');
+---
+
+<PaginaTesto
+  titolo="Il 5x1000 al VIC"
+  titoloSeo="Dona il 5x1000 al VIC, codice fiscale 97112380585"
+  descrizione="Come destinare il 5x1000 al VIC nella dichiarazione dei redditi: il codice fiscale è 97112380585. Non costa nulla e non sostituisce l'8x1000."
+  sommario="Non ti costa nulla. Basta una firma e il codice fiscale del VIC nella dichiarazione dei redditi."
+  aggiornato={new Date('2026-09-30')}
+  occhiello="Sostienici"
+>
+  <div slot="dopo" class="corpo-5x1000">
+    <CopiaIban id="cf" etichetta="Codice fiscale" valore={impostazioni.codiceFiscale} />
+
+    <h2>Cos'è</h2>
+    <p>
+      Il cinque per mille è una quota dell'IRPEF che lo Stato distribuisce agli enti che svolgono
+      attività di utilità sociale. Sei tu a scegliere a chi destinarla, quando fai la
+      dichiarazione dei redditi. Non paghi nulla in più.
+    </p>
+    <p>
+      La scelta <strong>non sostituisce</strong> l'8x1000 alla Chiesa cattolica o ad altre
+      confessioni: si possono fare entrambe.
+    </p>
+
+    <h2>Come si fa</h2>
+    <ol>
+      <li>Nel modello 730, nel Redditi o nella scheda allegata alla Certificazione Unica, cerca il riquadro per la scelta del cinque per mille.</li>
+      <li>Firma nel riquadro dedicato al <strong>sostegno degli enti del Terzo settore</strong>.</li>
+      <li>Sotto la firma scrivi il codice fiscale del VIC: <strong>{impostazioni.codiceFiscale}</strong>.</li>
+    </ol>
+    <p>Se la dichiarazione la prepara un CAF o un commercialista, basta dargli il codice fiscale.</p>
+
+    <h2>Cosa rende possibile</h2>
+    <p>Il 5x1000 sostiene il lavoro di tutti i giorni. Nel {anno.anno} sono stati:</p>
+    <ul>
+      <li><strong>{numero(colloqui.valore)}</strong> {colloqui.etichetta.toLowerCase()}</li>
+      <li><strong>{numero(notti.valore)}</strong> {notti.etichetta.toLowerCase()} nella Casa del VIC</li>
+      <li><strong>{numero(pacchi.valore)}</strong> {pacchi.etichetta.toLowerCase()}</li>
+    </ul>
+    <p><a href={href(`/numeri/${anno.anno}`)}>Tutti i numeri del {anno.anno}</a> · <a href={href('/sostienici')}>Gli altri modi per sostenerci</a></p>
+  </div>
+</PaginaTesto>
+
+<style>
+  .corpo-5x1000 { max-width: var(--riga-max); }
+  .corpo-5x1000 > * + * { margin-top: 1em; }
+  .corpo-5x1000 h2 { margin-top: 1.75em; }
+  .corpo-5x1000 ol { list-style: decimal; padding-left: 1.25em; }
+  .corpo-5x1000 ul { list-style: disc; padding-left: 1.25em; }
+  .corpo-5x1000 li + li { margin-top: .4em; }
+</style>

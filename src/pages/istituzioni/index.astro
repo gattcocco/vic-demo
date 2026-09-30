@@ -1,0 +1,63 @@
+---
+/**
+ * Indice delle istituzioni con cui il VIC lavora, in tre gruppi. Il gruppo e l'ordine di ogni
+ * scheda stanno nel suo file Markdown (campi `gruppo` e `ordine`).
+ */
+import { getCollection } from 'astro:content';
+import PaginaTesto from '../../components/PaginaTesto.astro';
+import { href } from '../../lib/url';
+
+const schede = await getCollection('pagine', (p) => p.id.startsWith('istituzioni/'));
+const gruppi = [
+  { id: 'garanti', titolo: 'Le figure di garanzia' },
+  { id: 'esecuzione', titolo: "Chi si occupa dell'esecuzione della pena" },
+  { id: 'territorio', titolo: 'Fuori dal carcere' },
+].map((g) => ({
+  ...g,
+  schede: schede.filter((s) => s.data.gruppo === g.id).sort((a, b) => a.data.ordine - b.data.ordine),
+}));
+
+const senzaGruppo = schede.filter((s) => !gruppi.some((g) => g.id === s.data.gruppo));
+if (senzaGruppo.length) {
+  throw new Error(`Schede senza gruppo valido: ${senzaGruppo.map((s) => s.id).join(', ')}`);
+}
+const aggiornato = new Date(Math.max(...schede.map((s) => s.data.aggiornato.getTime())));
+---
+
+<PaginaTesto
+  titolo="Le istituzioni"
+  descrizione="Le istituzioni con cui il VIC lavora ogni giorno: garanti, magistratura di sorveglianza, équipe, UEPE, Ministero della Giustizia e Terzo settore."
+  sommario="Chi entra in carcere come volontario lavora accanto a molte istituzioni. Qui spieghiamo chi sono e cosa fanno."
+  aggiornato={aggiornato}
+>
+  <div slot="dopo" class="gruppi">
+    {gruppi.filter((g) => g.schede.length).map((g) => (
+      <section aria-labelledby={`gruppo-${g.id}`}>
+        <h2 id={`gruppo-${g.id}`}>{g.titolo}</h2>
+        <ul class="elenco">
+          {g.schede.map((s) => (
+            <li>
+              <h3><a href={href(`/${s.id}`)}>{s.data.titolo}</a></h3>
+              <p>{s.data.sommario ?? s.data.descrizione}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+</PaginaTesto>
+
+<style>
+  .gruppi > * + * { margin-top: var(--spazio-5); }
+  .gruppi h2 { margin-bottom: var(--spazio-3); }
+  .elenco {
+    display: grid;
+    gap: var(--spazio-4) var(--spazio-3);
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  }
+  .elenco li {
+    padding-top: var(--spazio-2);
+    border-top: var(--spessore-bordo) solid var(--bordo);
+  }
+  .elenco h3 { margin-bottom: var(--spazio-1); }
+</style>

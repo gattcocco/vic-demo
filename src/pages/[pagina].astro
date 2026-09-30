@@ -1,0 +1,20 @@
+---
+/**
+ * Pagine di primo livello scritte in Markdown: src/content/pagine/<slug>.md -> /<slug>/.
+ * Le pagine nelle sottocartelle (attivita/, istituzioni/) hanno percorsi propri.
+ */
+import { getCollection, render } from 'astro:content';
+import PaginaTesto from '../components/PaginaTesto.astro';
+
+export async function getStaticPaths() {
+  const pagine = await getCollection('pagine', (p) => !p.id.includes('/'));
+  return pagine.map((pagina) => ({ params: { pagina: pagina.id }, props: { pagina } }));
+}
+
+const { pagina } = Astro.props;
+const { Content } = await render(pagina);
+---
+
+<PaginaTesto {...pagina.data}>
+  <Content />
+</PaginaTesto>

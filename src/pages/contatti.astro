@@ -1,0 +1,97 @@
+---
+/**
+ * Contatti: tutto da impostazioni.json, così telefoni, email e social si aggiornano dal pannello
+ * in un punto solo. Nessun modulo: il sito è statico e un modulo richiederebbe un servizio esterno
+ * e un'informativa in più. Si scrive con il proprio programma di posta.
+ */
+import { getEntry } from 'astro:content';
+import PaginaTesto from '../components/PaginaTesto.astro';
+import Bottone from '../components/ui/Bottone.astro';
+import { href } from '../lib/url';
+
+const impostazioni = (await getEntry('impostazioni', 'impostazioni'))!.data;
+const social = [
+  { chiave: 'facebook', etichetta: 'Facebook' },
+  { chiave: 'instagram', etichetta: 'Instagram' },
+  { chiave: 'youtube', etichetta: 'YouTube' },
+  { chiave: 'linkedin', etichetta: 'LinkedIn' },
+]
+  .map((s) => ({ ...s, url: impostazioni.social[s.chiave as keyof typeof impostazioni.social] }))
+  .filter((s) => s.url);
+const sede = impostazioni.indirizzo.via
+  ? `${impostazioni.indirizzo.via}, ${impostazioni.indirizzo.cap} ${impostazioni.indirizzo.citta}`.replace(/\s+/g, ' ')
+  : '';
+---
+
+<PaginaTesto
+  titolo="Contatti"
+  titoloSeo="Contatti del VIC"
+  descrizione="Telefono, email e social del VIC – Volontari In Carcere OdV, Roma."
+  sommario="Per informazioni, per diventare volontari, per organizzare un incontro o per una donazione."
+  aggiornato={new Date('2026-09-30')}
+>
+  <div slot="dopo" class="contatti">
+    <section aria-labelledby="titolo-scrivici">
+      <h2 id="titolo-scrivici">Scrivici</h2>
+      {impostazioni.email && (
+        <>
+          <p><a class="grande" href={`mailto:${impostazioni.email}`}>{impostazioni.email}</a></p>
+          <p><Bottone href={`mailto:${impostazioni.email}`}>Scrivi un'email</Bottone></p>
+        </>
+      )}
+      <p class="debole">Per il corso di formazione dei nuovi volontari c'è un indirizzo dedicato: <a href="mailto:corsovic@vic-odv.org">corsovic@vic-odv.org</a>.</p>
+    </section>
+
+    {impostazioni.telefoni.length > 0 && (
+      <section aria-labelledby="titolo-telefono">
+        <h2 id="titolo-telefono">Telefono</h2>
+        <ul class="semplice">
+          {impostazioni.telefoni.map((t) => (
+            <li>{t.etichetta}: <a class="grande" href={`tel:${t.numero.replace(/\s+/g, '')}`}>{t.numero}</a></li>
+          ))}
+        </ul>
+        {impostazioni.orari && <p class="debole">{impostazioni.orari}</p>}
+      </section>
+    )}
+
+    <section aria-labelledby="titolo-dove">
+      <h2 id="titolo-dove">Dove siamo</h2>
+      {sede && <p>Sede: {sede}</p>}
+      {impostazioni.sedeLegale && <p>Sede legale: {impostazioni.sedeLegale}</p>}
+      <p>
+        I volontari operano nei quattro istituti penitenziari di Rebibbia e nella
+        <a href={href('/attivita/accoglienza')}>Casa del VIC</a>, nel quartiere Città Giardino.
+      </p>
+    </section>
+
+    {social.length > 0 && (
+      <section aria-labelledby="titolo-social">
+        <h2 id="titolo-social">Sui social</h2>
+        <ul class="semplice">
+          {social.map((s) => <li><a href={s.url} target="_blank" rel="noopener">{s.etichetta}</a></li>)}
+        </ul>
+      </section>
+    )}
+
+    <p class="piccolo debole">
+      {impostazioni.nomeEsteso} · codice fiscale {impostazioni.codiceFiscale}. Chi ci scrive ci
+      comunica i propri dati: come li trattiamo è spiegato nell'<a href={href('/privacy')}>informativa sulla privacy</a>.
+    </p>
+  </div>
+</PaginaTesto>
+
+<style>
+  .contatti {
+    margin-top: var(--spazio-4);
+    display: grid;
+    gap: var(--spazio-4);
+    max-width: var(--riga-max);
+  }
+  .contatti section {
+    padding-top: var(--spazio-3);
+    border-top: var(--spessore-bordo) solid var(--bordo);
+  }
+  .contatti section > * + * { margin-top: var(--spazio-2); }
+  .contatti li + li { margin-top: var(--spazio-1); }
+  .grande { font-size: 1.2em; font-weight: 600; }
+</style>

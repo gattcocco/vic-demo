@@ -1,0 +1,115 @@
+---
+/**
+ * Sostienici: i modi di donare in un'unica pagina (5x1000, bonifico, PayPal, Satispay) e le
+ * campagne attive. Dati bancari, codice fiscale e link PayPal vengono da impostazioni.json,
+ * le campagne dalla raccolta `campagne`: niente scritto a mano nel template.
+ * Prende il posto delle tre pagine del sito attuale (5x1000, Bonifico bancario, Pay Pal).
+ */
+import { getCollection, getEntry } from 'astro:content';
+import PaginaTesto from '../../components/PaginaTesto.astro';
+import Bottone from '../../components/ui/Bottone.astro';
+import CopiaIban from '../../components/ui/CopiaIban.astro';
+import { href, esterno } from '../../lib/url';
+
+const impostazioni = (await getEntry('impostazioni', 'impostazioni'))!.data;
+const campagne = (await getCollection('campagne', (c) => c.data.attiva)).sort((a, b) => a.data.ordine - b.data.ordine);
+---
+
+<PaginaTesto
+  titolo="Sostienici"
+  titoloSeo="Sostieni il VIC: 5x1000, bonifico, PayPal"
+  descrizione="Come sostenere il VIC: 5x1000 con il codice fiscale 97112380585, bonifico, PayPal o Satispay. Le donazioni sono detraibili."
+  sommario="Ogni contributo diventa un pacco di vestiario, una notte nella Casa del VIC, un'ora di ascolto in carcere."
+  aggiornato={new Date('2026-09-30')}
+>
+  <div slot="dopo" class="modi">
+    <section class="modo modo--evidenza" aria-labelledby="titolo-5x1000">
+      <h2 id="titolo-5x1000">Il 5x1000</h2>
+      <p>Non costa nulla: nella dichiarazione dei redditi firma nel riquadro del sostegno agli enti del Terzo settore e scrivi il codice fiscale del VIC.</p>
+      <CopiaIban id="cf" etichetta="Codice fiscale" valore={impostazioni.codiceFiscale} />
+      <p><a href={href('/sostienici/5x1000')}>Come si fa, passo per passo</a></p>
+    </section>
+
+    <section class="modo" aria-labelledby="titolo-bonifico">
+      <h2 id="titolo-bonifico">Con un bonifico</h2>
+      <dl class="dati">
+        <div><dt>Intestatario</dt><dd>{impostazioni.intestatario}</dd></div>
+        <div><dt>Banca</dt><dd>{impostazioni.banca}</dd></div>
+        {impostazioni.bic && <div><dt>BIC/SWIFT</dt><dd>{impostazioni.bic}</dd></div>}
+      </dl>
+      <CopiaIban id="iban" etichetta="IBAN" valore={impostazioni.iban} spaziato />
+    </section>
+
+    <section class="modo" aria-labelledby="titolo-paypal">
+      <h2 id="titolo-paypal">Con PayPal</h2>
+      <p>Con carta di credito, prepagata o con il tuo conto PayPal. Il VIC ha un conto riconosciuto da PayPal come ente benefico.</p>
+      {impostazioni.paypal
+        ? <p><Bottone href={impostazioni.paypal}>Dona con PayPal</Bottone></p>
+        : <p><strong>[Segnaposto: link PayPal dell'associazione da inserire]</strong></p>}
+    </section>
+
+    <section class="modo" aria-labelledby="titolo-satispay">
+      <h2 id="titolo-satispay">Con Satispay</h2>
+      <p>Dall'app Satispay, inquadrando il QR code del VIC.</p>
+      <!-- Segnaposto dichiarato: il QR e il profilo Satispay del VIC vanno forniti dall'associazione. -->
+      <div class="qr-segnaposto"><p class="piccolo">QR code Satispay da inserire</p></div>
+    </section>
+
+    <section class="modo" aria-labelledby="titolo-detrazioni">
+      <h2 id="titolo-detrazioni">Detraibilità</h2>
+      <p>
+        Le donazioni al VIC sono detraibili o deducibili ai sensi dell'art. 83 del Codice del Terzo
+        settore (D.Lgs. 117/2017), se fatte con mezzi tracciabili: bonifico, carta, PayPal o
+        Satispay, non contanti. Conserva la ricevuta per la dichiarazione dei redditi.
+      </p>
+    </section>
+
+    {campagne.length > 0 && (
+      <section class="modo" aria-labelledby="titolo-campagne">
+        <h2 id="titolo-campagne">Le campagne</h2>
+        <p>Se vuoi che il tuo contributo vada a un progetto preciso.</p>
+        <ul class="campagne">
+          {campagne.map((c) => (
+            <li>
+              <a href={href(c.data.url)} {...esterno(c.data.url) ? { target: '_blank', rel: 'noopener' } : {}}>{c.data.titolo}</a>
+              <span class="debole"> — {c.data.descrizione}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </div>
+</PaginaTesto>
+
+<style>
+  .modi {
+    margin-top: var(--spazio-4);
+    display: grid;
+    gap: var(--spazio-4);
+    max-width: var(--riga-max);
+  }
+  .modo {
+    padding-top: var(--spazio-3);
+    border-top: var(--spessore-bordo) solid var(--bordo);
+  }
+  .modo > * + * { margin-top: var(--spazio-2); }
+  .modo--evidenza {
+    padding: var(--spazio-3);
+    border-top: 0;
+    background: var(--superficie-alt);
+  }
+  .dati { display: grid; gap: var(--spazio-2) var(--spazio-4); }
+  @media (min-width: 600px) { .dati { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .dati dd { font-weight: 600; }
+  .campagne li + li { margin-top: var(--spazio-1); }
+  .qr-segnaposto {
+    width: 200px;
+    max-width: 100%;
+    height: 200px;
+    display: flex;
+    align-items: flex-end;
+    padding: var(--spazio-2);
+    border: var(--spessore-bordo) solid var(--testo);
+    color: var(--testo-debole);
+  }
+</style>
